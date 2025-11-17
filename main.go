@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -17,5 +18,8 @@ func main() {
 		log.Panic(err)
 	}
 	source := string(b)
-	script.Lex(source)
+	tokens := script.Lex(source)
+	for _, token := range tokens {
+		fmt.Printf("%s\n", token)
+	}
 }
