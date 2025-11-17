@@ -29,9 +29,14 @@ const (
 	TokenNone TokenKind = iota
 	TokenEnd
 	TokenFun
+	TokenHSpace
 	TokenId
+	TokenJunk
 	TokenPub
+	TokenRoundClose
+	TokenRoundOpen
 	TokenString
+	TokenVSpace
 )
 
 //go:generate stringer -trimprefix=Token -type=TokenKind
@@ -48,8 +53,21 @@ func (l *lexer) lex() {
 		switch {
 		case unicode.IsLetter(r) || r == '_':
 			l.id()
+		case r == ' ' || r == '\t':
+			l.hspace()
 		default:
+			start := l.index
 			l.next()
+			switch r {
+			case '(':
+				l.push(TokenRoundOpen, start)
+			case ')':
+				l.push(TokenRoundClose, start)
+			case '\n':
+				l.push(TokenVSpace, start)
+			default:
+				l.push(TokenJunk, start)
+			}
 		}
 	}
 }
@@ -76,6 +94,22 @@ func (l *lexer) peek() rune {
 
 func (l *lexer) push(kind TokenKind, start int) {
 	l.tokens = append(l.tokens, Token{Kind: kind, Text: l.source[start:l.index]})
+}
+
+func (l *lexer) hspace() {
+	start := l.index
+HSpace:
+	for l.has() {
+		l.next()
+		r := l.peek()
+		switch r {
+		case ' ':
+		case '\t':
+		default:
+			break HSpace
+		}
+	}
+	l.push(TokenHSpace, start)
 }
 
 func (l *lexer) id() {
