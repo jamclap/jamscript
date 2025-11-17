@@ -20,7 +20,7 @@ type Token struct {
 }
 
 func (t Token) String() string {
-	return fmt.Sprintf("{%s \"%s\"}", t.Kind, t.Text)
+	return fmt.Sprintf("Token{%s \"%s\"}", t.Kind, t.Text)
 }
 
 type TokenKind int
@@ -34,7 +34,7 @@ const (
 	TokenString
 )
 
-//go:generate stringer -type=TokenKind
+//go:generate stringer -trimprefix=Token -type=TokenKind
 
 type lexer struct {
 	index  int
