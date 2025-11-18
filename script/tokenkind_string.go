@@ -17,13 +17,16 @@ func _() {
 	_ = x[TokenPub-6]
 	_ = x[TokenRoundClose-7]
 	_ = x[TokenRoundOpen-8]
-	_ = x[TokenString-9]
-	_ = x[TokenVSpace-10]
+	_ = x[TokenStringEscape-9]
+	_ = x[TokenStringText-10]
+	_ = x[TokenStringClose-11]
+	_ = x[TokenStringOpen-12]
+	_ = x[TokenVSpace-13]
 }
 
-const _TokenKind_name = "TokenNoneTokenEndTokenFunTokenHSpaceTokenIdTokenJunkTokenPubTokenRoundCloseTokenRoundOpenTokenStringTokenVSpace"
+const _TokenKind_name = "TokenNoneTokenEndTokenFunTokenHSpaceTokenIdTokenJunkTokenPubTokenRoundCloseTokenRoundOpenTokenStringEscapeTokenStringTextTokenStringCloseTokenStringOpenTokenVSpace"
 
-var _TokenKind_index = [...]uint8{0, 9, 17, 25, 36, 43, 52, 60, 75, 89, 100, 111}
+var _TokenKind_index = [...]uint8{0, 9, 17, 25, 36, 43, 52, 60, 75, 89, 106, 121, 137, 152, 163}
 
 func (i TokenKind) String() string {
 	idx := int(i) - 0

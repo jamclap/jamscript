@@ -14,4 +14,5 @@ type ParseNodeKind int
 
 const (
 	ParseNone = iota
+	ParseToken
 )

@@ -35,7 +35,10 @@ const (
 	TokenPub
 	TokenRoundClose
 	TokenRoundOpen
-	TokenString
+	TokenStringEscape
+	TokenStringText
+	TokenStringClose
+	TokenStringOpen
 	TokenVSpace
 )
 
@@ -59,6 +62,8 @@ func (l *lexer) lex() {
 			start := l.index
 			switch r {
 			case '"':
+				l.next()
+				l.push(TokenStringOpen, start)
 				l.str()
 			case '(':
 				l.next()
@@ -98,7 +103,9 @@ func (l *lexer) peek() rune {
 }
 
 func (l *lexer) push(kind TokenKind, start int) {
-	l.tokens = append(l.tokens, Token{Kind: kind, Text: l.source[start:l.index]})
+	if start < l.index {
+		l.tokens = append(l.tokens, Token{Kind: kind, Text: l.source[start:l.index]})
+	}
 }
 
 func (l *lexer) hspace() {
@@ -142,29 +149,35 @@ Id:
 func (l *lexer) str() {
 	start := l.index
 	l.next()
-	skip := false
+	kind := TokenStringText
 Str:
 	for l.has() {
 		r := l.peek()
 		if r == '\n' {
 			break Str
 		}
-		if skip {
-			skip = false
+		if kind == TokenStringEscape {
+			l.next()
+			l.push(kind, start)
+			kind = TokenStringText
+			start = l.index
 			continue Str
 		}
 		switch r {
 			case '"':
 				l.next()
+				kind = TokenStringClose
 				break Str
 			case '\n':
 				break Str
 			case '\\':
-				skip = true
+				l.push(kind, start)
+				kind = TokenStringEscape
+				start = l.index
 		}
 		l.next()
 	}
-	l.push(TokenString, start)
+	l.push(kind, start)
 }
 
 var keys = map[string]TokenKind{
