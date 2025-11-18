@@ -20,7 +20,7 @@ type Token struct {
 }
 
 func (t Token) String() string {
-	return fmt.Sprintf("Token{%s \"%s\"}", t.Kind, t.Text)
+	return fmt.Sprintf("{%s \"%s\"}", t.Kind, t.Text)
 }
 
 type TokenKind int
@@ -39,7 +39,7 @@ const (
 	TokenVSpace
 )
 
-//go:generate stringer -trimprefix=Token -type=TokenKind
+//go:generate stringer -type=TokenKind
 
 type lexer struct {
 	index  int
@@ -57,15 +57,20 @@ func (l *lexer) lex() {
 			l.hspace()
 		default:
 			start := l.index
-			l.next()
 			switch r {
+			case '"':
+				l.str()
 			case '(':
+				l.next()
 				l.push(TokenRoundOpen, start)
 			case ')':
+				l.next()
 				l.push(TokenRoundClose, start)
 			case '\n':
+				l.next()
 				l.push(TokenVSpace, start)
 			default:
+				l.next()
 				l.push(TokenJunk, start)
 			}
 		}
@@ -132,6 +137,34 @@ Id:
 		kind = TokenId
 	}
 	l.push(kind, start)
+}
+
+func (l *lexer) str() {
+	start := l.index
+	l.next()
+	skip := false
+Str:
+	for l.has() {
+		r := l.peek()
+		if r == '\n' {
+			break Str
+		}
+		if skip {
+			skip = false
+			continue Str
+		}
+		switch r {
+			case '"':
+				l.next()
+				break Str
+			case '\n':
+				break Str
+			case '\\':
+				skip = true
+		}
+		l.next()
+	}
+	l.push(TokenString, start)
 }
 
 var keys = map[string]TokenKind{
