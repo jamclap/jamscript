@@ -164,16 +164,16 @@ Str:
 			continue Str
 		}
 		switch r {
-			case '"':
-				l.next()
-				kind = TokenStringClose
-				break Str
-			case '\n':
-				break Str
-			case '\\':
-				l.push(kind, start)
-				kind = TokenStringEscape
-				start = l.index
+		case '"':
+			l.next()
+			kind = TokenStringClose
+			break Str
+		case '\n':
+			break Str
+		case '\\':
+			l.push(kind, start)
+			kind = TokenStringEscape
+			start = l.index
 		}
 		l.next()
 	}
