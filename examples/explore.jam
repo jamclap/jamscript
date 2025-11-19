@@ -1,0 +1,22 @@
+class Something
+
+pub fun this.blah(a, b)
+	sloppy var a Int
+	# a == 0 before assignment
+	a = 1
+	a = 2
+end
+
+end class # optional
+
+struct Entity
+	pos Vec2?
+	vel? # means: vel Vec2?, or: vel Maybe[Vec2]
+end
+
+var entities Entity* # or: List[Entity]
+
+vartype
+	pos Vec2
+	vel Vec2
+end
