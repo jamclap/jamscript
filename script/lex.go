@@ -27,6 +27,8 @@ type TokenKind int
 
 const (
 	TokenNone TokenKind = iota
+	TokenClass
+	TokenConst
 	TokenEnd
 	TokenFun
 	TokenHSpace
@@ -35,11 +37,15 @@ const (
 	TokenPub
 	TokenRoundClose
 	TokenRoundOpen
+	TokenSloppy
 	TokenStringEscape
 	TokenStringText
 	TokenStringClose
 	TokenStringOpen
+	TokenStruct
 	TokenVSpace
+	TokenVar
+	TokenVartype
 )
 
 //go:generate stringer -type=TokenKind
@@ -180,8 +186,15 @@ Str:
 	l.push(kind, start)
 }
 
+// We have keys only for things that affect parsing?
 var keys = map[string]TokenKind{
+	"class": TokenClass,
+	"const": TokenConst,
 	"end": TokenEnd,
 	"fun": TokenFun,
 	"pub": TokenPub,
+	"sloppy": TokenSloppy,
+	"struct": TokenStruct,
+	"var": TokenVar,
+	"vartype": TokenVartype,
 }

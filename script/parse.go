@@ -22,13 +22,6 @@ type ParseNode struct {
 	Token Token
 }
 
-type inParseNode struct {
-	kind     ParseKind
-	kidsStart int
-	kidsEnd   int
-	token    Token
-}
-
 type ParseKind int
 
 const (
@@ -42,6 +35,21 @@ const (
 	ParseString
 	ParseToken
 )
+
+func (n ParseNode) Print() {
+	//
+}
+
+func (n ParseNode) printAt(indent int) {
+	//
+}
+
+type inParseNode struct {
+	kind     ParseKind
+	kidsStart int
+	kidsEnd   int
+	token    Token
+}
 
 type parser struct {
 	index  int

@@ -9,24 +9,30 @@ func _() {
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
 	_ = x[TokenNone-0]
-	_ = x[TokenEnd-1]
-	_ = x[TokenFun-2]
-	_ = x[TokenHSpace-3]
-	_ = x[TokenId-4]
-	_ = x[TokenJunk-5]
-	_ = x[TokenPub-6]
-	_ = x[TokenRoundClose-7]
-	_ = x[TokenRoundOpen-8]
-	_ = x[TokenStringEscape-9]
-	_ = x[TokenStringText-10]
-	_ = x[TokenStringClose-11]
-	_ = x[TokenStringOpen-12]
-	_ = x[TokenVSpace-13]
+	_ = x[TokenClass-1]
+	_ = x[TokenConst-2]
+	_ = x[TokenEnd-3]
+	_ = x[TokenFun-4]
+	_ = x[TokenHSpace-5]
+	_ = x[TokenId-6]
+	_ = x[TokenJunk-7]
+	_ = x[TokenPub-8]
+	_ = x[TokenRoundClose-9]
+	_ = x[TokenRoundOpen-10]
+	_ = x[TokenSloppy-11]
+	_ = x[TokenStringEscape-12]
+	_ = x[TokenStringText-13]
+	_ = x[TokenStringClose-14]
+	_ = x[TokenStringOpen-15]
+	_ = x[TokenStruct-16]
+	_ = x[TokenVSpace-17]
+	_ = x[TokenVar-18]
+	_ = x[TokenVartype-19]
 }
 
-const _TokenKind_name = "TokenNoneTokenEndTokenFunTokenHSpaceTokenIdTokenJunkTokenPubTokenRoundCloseTokenRoundOpenTokenStringEscapeTokenStringTextTokenStringCloseTokenStringOpenTokenVSpace"
+const _TokenKind_name = "TokenNoneTokenClassTokenConstTokenEndTokenFunTokenHSpaceTokenIdTokenJunkTokenPubTokenRoundCloseTokenRoundOpenTokenSloppyTokenStringEscapeTokenStringTextTokenStringCloseTokenStringOpenTokenStructTokenVSpaceTokenVarTokenVartype"
 
-var _TokenKind_index = [...]uint8{0, 9, 17, 25, 36, 43, 52, 60, 75, 89, 106, 121, 137, 152, 163}
+var _TokenKind_index = [...]uint8{0, 9, 19, 29, 37, 45, 56, 63, 72, 80, 95, 109, 120, 137, 152, 168, 183, 194, 205, 213, 225}
 
 func (i TokenKind) String() string {
 	idx := int(i) - 0
