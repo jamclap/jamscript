@@ -8,13 +8,20 @@ pub fun this.blah(a, b)
 	if a == b
 		c = 3
 	end
-	d = if a == b then c else 4
-	if
-		a == b
+	d =
+		if a == b then c else
+		if b == c then 2
+	if a == b
+		things
+	else if c == d
+		otherThings
+	end
+	switch
+		when a == b
 		end
-		a == c
+		when a == c
 		end
-		a == d then 5
+		when a == d then 5
 		else
 		end
 	end
