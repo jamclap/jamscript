@@ -5,13 +5,28 @@ func Parse(tokens []Token) ParseNode {
 		tokens: tokens,
 	}
 	p.parse()
-	return ParseNode{}
+	nodes := make([]ParseNode, len(p.nodes))
+	for i, node := range p.nodes {
+		nodes[i] = ParseNode{
+			Kind: node.kind,
+			Kids: nodes[node.kidsStart:node.kidsEnd],
+			Token: node.token,
+		}
+	}
+	return nodes[len(nodes)-1]
 }
 
 type ParseNode struct {
 	Kind  ParseKind
 	Kids  []ParseNode
 	Token Token
+}
+
+type inParseNode struct {
+	kind     ParseKind
+	kidsStart int
+	kidsEnd   int
+	token    Token
 }
 
 type ParseKind int
@@ -31,12 +46,23 @@ const (
 type parser struct {
 	index  int
 	tokens []Token
-	nodes  []ParseNode
-	work   []ParseNode
+	nodes  []inParseNode
+	work   []inParseNode
 }
 
 func (p *parser) parse() {
 	p.parseBlock()
+	// Double commit at end.
+	// First pushes working nodes. Second pushes the root itself.
+	p.commit(ParseBlock, 0)
+	p.commit(ParseBlock, 0)
+}
+
+func (p *parser) commit(kind ParseKind, start int) {
+	oldLen := len(p.nodes)
+	p.nodes = append(p.nodes, p.work[start:]...)
+	parent := inParseNode{kind: kind, kidsStart: oldLen, kidsEnd: len(p.nodes)}
+	p.work = append(p.work[:start], parent)
 }
 
 func (p *parser) has() bool {
@@ -47,8 +73,12 @@ func (p *parser) peek() Token {
 	return p.tokens[p.index]
 }
 
-func (p *parser) push(node ParseNode) {
+func (p *parser) push(node inParseNode) {
 	p.work = append(p.work, node)
+}
+
+func (p *parser) pushToken(t Token) {
+	p.push(inParseNode{kind: ParseToken, token: t})
 }
 
 func (p *parser) parseBlock() {
@@ -62,12 +92,12 @@ func (p *parser) parseStatement() {
 Statement:
 	for p.has() {
 		t := p.peek()
-		p.push(ParseNode{Kind: ParseToken, Token: t})
+		p.pushToken(t)
 		p.index++
 		if t.Kind == TokenVSpace {
 			break Statement
 		}
 	}
 	_ = start
-	// TODO p.commit(ParseJunk, start)
+	p.commit(ParseJunk, start)
 }

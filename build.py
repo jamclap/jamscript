@@ -1,6 +1,7 @@
 import os
 import os.path as p
 import subprocess as sp
+import sys
 import time as t
 
 
@@ -11,13 +12,20 @@ target_file = p.join(target_dir, "jamscript")
 def build():
     start = t.perf_counter()
     mkdir(target_dir)
-    run(["go", "build", "-o", target_file, "main.go"])
+    failed = False
+    try:
+        run(["go", "build", "-o", target_file, "main.go"])
+    except:
+        failed = True
+        pass
     end = t.perf_counter()
     print(f"Build time: {end - start:.2f} s")
+    return not failed
 
 
 def main():
-    build()
+    if not build():
+        sys.exit(1)
     report()
 
 

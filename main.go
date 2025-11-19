@@ -22,4 +22,6 @@ func main() {
 	for _, token := range tokens {
 		fmt.Printf("%s\n", token)
 	}
+	parseTree := script.Parse(tokens)
+	fmt.Printf("Parse tree size: %d\n", cap(parseTree.Kids))
 }
