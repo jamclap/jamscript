@@ -28,23 +28,28 @@ type TokenKind int
 const (
 	TokenNone TokenKind = iota
 	TokenAs
+	TokenBreak
 	TokenClass
 	TokenConst
-	TokenEnd
+	TokenContinue
 	TokenElse
+	TokenEnd
+	TokenEnum
 	TokenFor
 	TokenFrom
 	TokenFun
 	TokenHSpace
 	TokenId
 	TokenIf
+	TokenIs
 	TokenImport
 	TokenJunk
 	TokenPlug
 	TokenPub
+	TokenReturn
 	TokenRoundClose
 	TokenRoundOpen
-	TokenSloppy
+	TokenSwap
 	TokenStringEscape
 	TokenStringText
 	TokenStringClose
@@ -53,6 +58,7 @@ const (
 	TokenSwitch
 	TokenThen
 	TokenVSpace
+	TokenUnion
 	TokenUse
 	TokenVar
 	TokenVartype
@@ -198,27 +204,29 @@ Str:
 
 // We have keys only for things that affect parsing?
 var keys = map[string]TokenKind{
-	"as":      TokenAs,
-	// "break"
-	"class":   TokenClass,
-	"const":   TokenConst,
-	// "continue"
-	"else":    TokenElse,
-	"end":     TokenEnd,
-	"if":      TokenIf,
-	"import":  TokenImport,
-	"for":     TokenFor,
-	"from":    TokenFrom,
-	"fun":     TokenFun,
-	"plug":    TokenPlug,
-	"pub":     TokenPub,
-	// "return"
-	// "subvar"?
-	"sloppy":  TokenSloppy,
-	"struct":  TokenStruct,
-	"switch":  TokenSwitch,
-	"then":    TokenThen,
-	"use":     TokenUse,
-	"var":     TokenVar,
-	"vartype": TokenVartype,
+	"as":       TokenAs,
+	"break":    TokenBreak,
+	"class":    TokenClass,
+	"const":    TokenConst,
+	"continue": TokenContinue,
+	"else":     TokenElse,
+	"end":      TokenEnd,
+	"if":       TokenIf,
+	"is":       TokenIs,
+	"import":   TokenImport,
+	"enum":     TokenEnum,
+	"for":      TokenFor,
+	"from":     TokenFrom,
+	"fun":      TokenFun,
+	"plug":     TokenPlug,
+	"pub":      TokenPub,
+	"return":   TokenReturn,
+	"swap":     TokenSwap,
+	"struct":   TokenStruct,
+	"switch":   TokenSwitch,
+	"then":     TokenThen,
+	"union":    TokenUnion,
+	"use":      TokenUse,
+	"var":      TokenVar,
+	"vartype":  TokenVartype,
 }

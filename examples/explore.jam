@@ -22,10 +22,12 @@ import
 	end
 end
 
-class Something
+class Something(x, var y)
+
+var z = y
 
 pub fun this.blah(a, b)
-	subvar c Int
+	swap var c Int
 	# c == 0 before assignment
 	c = 1
 	c = 2
@@ -43,7 +45,7 @@ pub fun this.blah(a, b)
 	else
 		whatever
 	end
-	switch
+	var e = switch
 	case a == b
 		1
 	case a == c
@@ -55,9 +57,19 @@ end
 
 end class # optional
 
+enum Thing
+	a
+	b
+end
+
+union Blah
+	Hey
+	There
+end
+
 struct Entity
-	pos Vec2?
-	vel? # means: vel Vec2?, or: vel Maybe[Vec2]
+	pos ?Vec2
+	vel? # means: vel ?Vec2, or: vel Maybe[Vec2]
 end
 
 var entities Entity* # or: List[Entity]
