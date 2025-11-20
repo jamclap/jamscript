@@ -1,29 +1,55 @@
+import "something" as blah use
+	here
+	there
+	hi = there
+	there as hi
+end
+from import "something" use
+	etc
+end
+use blah = import "something"
+from blah use
+	etc
+end
+use alias = other
+use other as alias
+as alias use other
+import
+	"one" as uno
+	"two" as dos use
+		things
+		moreThings
+	end
+end
+
 class Something
 
 pub fun this.blah(a, b)
-	sloppy var c Int
+	subvar c Int
 	# c == 0 before assignment
 	c = 1
 	c = 2
 	if a == b
 		c = 3
 	end
-	d =
-		if a == b then c else
-		if b == c then 2
+	subvar d =
+		if a == b then c
+		else if b == c then 2 else 3
+	more = d
 	if a == b
 		things
 	else if c == d
 		otherThings
+	else
+		whatever
 	end
 	switch
-		when a == b
-		end
-		when a == c
-		end
-		when a == d then 5
-		else
-		end
+	case a == b
+		1
+	case a == c
+		2
+	case a == d then 3
+	else 4
 	end
 end
 

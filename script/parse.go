@@ -1,5 +1,9 @@
 package script
 
+import (
+	"fmt"
+)
+
 func Parse(tokens []Token) ParseNode {
 	p := parser{
 		tokens: tokens,
@@ -8,8 +12,8 @@ func Parse(tokens []Token) ParseNode {
 	nodes := make([]ParseNode, len(p.nodes))
 	for i, node := range p.nodes {
 		nodes[i] = ParseNode{
-			Kind: node.kind,
-			Kids: nodes[node.kidsStart:node.kidsEnd],
+			Kind:  node.kind,
+			Kids:  nodes[node.kidsStart:node.kidsEnd],
 			Token: node.token,
 		}
 	}
@@ -25,7 +29,7 @@ type ParseNode struct {
 type ParseKind int
 
 const (
-	ParseNone = iota
+	ParseNone ParseKind = iota
 	ParseBlock
 	ParseCall
 	ParseFun
@@ -36,19 +40,32 @@ const (
 	ParseToken
 )
 
+//go:generate stringer -type=ParseKind
+
 func (n ParseNode) Print() {
-	//
+	n.printAt(0)
 }
 
 func (n ParseNode) printAt(indent int) {
-	//
+	for i := 0; i < indent; i++ {
+		print("  ")
+	}
+	switch n.Kind {
+	case ParseToken:
+		fmt.Printf("%s\n", n.Token)
+	default:
+		fmt.Printf("%s\n", n.Kind)
+		for _, kid := range n.Kids {
+			kid.printAt(indent + 1)
+		}
+	}
 }
 
 type inParseNode struct {
-	kind     ParseKind
+	kind      ParseKind
 	kidsStart int
 	kidsEnd   int
-	token    Token
+	token     Token
 }
 
 type parser struct {

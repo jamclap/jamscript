@@ -20,20 +20,27 @@ type Token struct {
 }
 
 func (t Token) String() string {
-	return fmt.Sprintf("{%s \"%s\"}", t.Kind, t.Text)
+	return fmt.Sprintf("%s \"%s\"", t.Kind, t.Text)
 }
 
 type TokenKind int
 
 const (
 	TokenNone TokenKind = iota
+	TokenAs
 	TokenClass
 	TokenConst
 	TokenEnd
+	TokenElse
+	TokenFor
+	TokenFrom
 	TokenFun
 	TokenHSpace
 	TokenId
+	TokenIf
+	TokenImport
 	TokenJunk
+	TokenPlug
 	TokenPub
 	TokenRoundClose
 	TokenRoundOpen
@@ -43,7 +50,10 @@ const (
 	TokenStringClose
 	TokenStringOpen
 	TokenStruct
+	TokenSwitch
+	TokenThen
 	TokenVSpace
+	TokenUse
 	TokenVar
 	TokenVartype
 )
@@ -188,13 +198,27 @@ Str:
 
 // We have keys only for things that affect parsing?
 var keys = map[string]TokenKind{
-	"class": TokenClass,
-	"const": TokenConst,
-	"end": TokenEnd,
-	"fun": TokenFun,
-	"pub": TokenPub,
-	"sloppy": TokenSloppy,
-	"struct": TokenStruct,
-	"var": TokenVar,
+	"as":      TokenAs,
+	// "break"
+	"class":   TokenClass,
+	"const":   TokenConst,
+	// "continue"
+	"else":    TokenElse,
+	"end":     TokenEnd,
+	"if":      TokenIf,
+	"import":  TokenImport,
+	"for":     TokenFor,
+	"from":    TokenFrom,
+	"fun":     TokenFun,
+	"plug":    TokenPlug,
+	"pub":     TokenPub,
+	// "return"
+	// "subvar"?
+	"sloppy":  TokenSloppy,
+	"struct":  TokenStruct,
+	"switch":  TokenSwitch,
+	"then":    TokenThen,
+	"use":     TokenUse,
+	"var":     TokenVar,
 	"vartype": TokenVartype,
 }

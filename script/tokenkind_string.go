@@ -9,30 +9,40 @@ func _() {
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
 	_ = x[TokenNone-0]
-	_ = x[TokenClass-1]
-	_ = x[TokenConst-2]
-	_ = x[TokenEnd-3]
-	_ = x[TokenFun-4]
-	_ = x[TokenHSpace-5]
-	_ = x[TokenId-6]
-	_ = x[TokenJunk-7]
-	_ = x[TokenPub-8]
-	_ = x[TokenRoundClose-9]
-	_ = x[TokenRoundOpen-10]
-	_ = x[TokenSloppy-11]
-	_ = x[TokenStringEscape-12]
-	_ = x[TokenStringText-13]
-	_ = x[TokenStringClose-14]
-	_ = x[TokenStringOpen-15]
-	_ = x[TokenStruct-16]
-	_ = x[TokenVSpace-17]
-	_ = x[TokenVar-18]
-	_ = x[TokenVartype-19]
+	_ = x[TokenAs-1]
+	_ = x[TokenClass-2]
+	_ = x[TokenConst-3]
+	_ = x[TokenEnd-4]
+	_ = x[TokenElse-5]
+	_ = x[TokenFor-6]
+	_ = x[TokenFrom-7]
+	_ = x[TokenFun-8]
+	_ = x[TokenHSpace-9]
+	_ = x[TokenId-10]
+	_ = x[TokenIf-11]
+	_ = x[TokenImport-12]
+	_ = x[TokenJunk-13]
+	_ = x[TokenPlug-14]
+	_ = x[TokenPub-15]
+	_ = x[TokenRoundClose-16]
+	_ = x[TokenRoundOpen-17]
+	_ = x[TokenSloppy-18]
+	_ = x[TokenStringEscape-19]
+	_ = x[TokenStringText-20]
+	_ = x[TokenStringClose-21]
+	_ = x[TokenStringOpen-22]
+	_ = x[TokenStruct-23]
+	_ = x[TokenSwitch-24]
+	_ = x[TokenThen-25]
+	_ = x[TokenVSpace-26]
+	_ = x[TokenUse-27]
+	_ = x[TokenVar-28]
+	_ = x[TokenVartype-29]
 }
 
-const _TokenKind_name = "TokenNoneTokenClassTokenConstTokenEndTokenFunTokenHSpaceTokenIdTokenJunkTokenPubTokenRoundCloseTokenRoundOpenTokenSloppyTokenStringEscapeTokenStringTextTokenStringCloseTokenStringOpenTokenStructTokenVSpaceTokenVarTokenVartype"
+const _TokenKind_name = "TokenNoneTokenAsTokenClassTokenConstTokenEndTokenElseTokenForTokenFromTokenFunTokenHSpaceTokenIdTokenIfTokenImportTokenJunkTokenPlugTokenPubTokenRoundCloseTokenRoundOpenTokenSloppyTokenStringEscapeTokenStringTextTokenStringCloseTokenStringOpenTokenStructTokenSwitchTokenThenTokenVSpaceTokenUseTokenVarTokenVartype"
 
-var _TokenKind_index = [...]uint8{0, 9, 19, 29, 37, 45, 56, 63, 72, 80, 95, 109, 120, 137, 152, 168, 183, 194, 205, 213, 225}
+var _TokenKind_index = [...]uint16{0, 9, 16, 26, 36, 44, 53, 61, 70, 78, 89, 96, 103, 114, 123, 132, 140, 155, 169, 180, 197, 212, 228, 243, 254, 265, 274, 285, 293, 301, 313}
 
 func (i TokenKind) String() string {
 	idx := int(i) - 0
