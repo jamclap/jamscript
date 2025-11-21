@@ -19,9 +19,12 @@ func main() {
 	}
 	source := string(b)
 	tokens := script.Lex(source)
+	parseTree := script.Parse(tokens)
+	parseTree.Print()
+}
+
+func printTokens(tokens []script.Token) {
 	for _, token := range tokens {
 		fmt.Printf("%s\n", token)
 	}
-	parseTree := script.Parse(tokens)
-	parseTree.Print()
 }

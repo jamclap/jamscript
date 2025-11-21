@@ -7,11 +7,11 @@ end
 from import "something" use
 	etc
 end
-use blah = import "something"
+const blah = import "something"
 from blah use
 	etc
 end
-use alias = other
+const alias = other
 use other as alias
 as alias use other
 import
@@ -27,14 +27,14 @@ class Something(x, var y)
 var z = y
 
 pub fun this.blah(a, b)
-	swap var c Int
+	var c Int
 	# c == 0 before assignment
 	c = 1
 	c = 2
 	if a == b
 		c = 3
 	end
-	subvar d =
+	var d =
 		if a == b then c
 		else if b == c then 2 else 3
 	more = d

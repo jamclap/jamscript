@@ -91,11 +91,21 @@ func (p *parser) commit(kind ParseKind, start int) {
 }
 
 func (p *parser) has() bool {
-	return p.index < len(p.tokens)
+	for p.index < len(p.tokens) {
+		t := p.tokens[p.index]
+		if t.Kind != TokenHSpace {
+			return true
+		}
+		p.pushToken(t)
+	}
+	return false
 }
 
-func (p *parser) peek() Token {
-	return p.tokens[p.index]
+func (p *parser) peek() (t Token) {
+	if p.has() {
+		t = p.tokens[p.index]
+	}
+	return
 }
 
 func (p *parser) push(node inParseNode) {
@@ -104,6 +114,7 @@ func (p *parser) push(node inParseNode) {
 
 func (p *parser) pushToken(t Token) {
 	p.push(inParseNode{kind: ParseToken, token: t})
+	p.index++
 }
 
 func (p *parser) parseBlock() {
@@ -112,17 +123,40 @@ func (p *parser) parseBlock() {
 	}
 }
 
-func (p *parser) parseStatement() {
+func (p *parser) parseJunk() {
 	start := len(p.work)
-Statement:
+Junk:
 	for p.has() {
 		t := p.peek()
 		p.pushToken(t)
-		p.index++
 		if t.Kind == TokenVSpace {
-			break Statement
+			break Junk
 		}
 	}
-	_ = start
 	p.commit(ParseJunk, start)
+}
+
+func (p *parser) parseModify() {
+	start := len(p.work)
+	found := false
+Mods:
+	for p.has() {
+		t := p.peek()
+		switch t.Kind {
+		case TokenPlug:
+		case TokenPub:
+		default:
+			break Mods
+		}
+		found = true
+		p.pushToken(t)
+	}
+	p.parseJunk()
+	if found {
+		p.commit(ParseModify, start)
+	}
+}
+
+func (p *parser) parseStatement() {
+	p.parseModify()
 }
