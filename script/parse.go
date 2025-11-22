@@ -47,7 +47,7 @@ func (n ParseNode) Print() {
 }
 
 func (n ParseNode) printAt(indent int) {
-	for i := 0; i < indent; i++ {
+	for range indent {
 		print("  ")
 	}
 	switch n.Kind {
