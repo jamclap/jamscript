@@ -117,6 +117,22 @@ func (p *parser) pushToken(t Token) {
 	p.index++
 }
 
+func (p *parser) parseAtom() {
+	if !p.has() {
+		return
+	}
+	switch t := p.peek(); t.Kind {
+	case TokenId:
+		p.pushToken(t)
+	case TokenPlug:
+	case TokenPub:
+		p.parseModify()
+	default:
+		// TODO Fix.
+		p.pushToken(t)
+	}
+}
+
 func (p *parser) parseBlock() {
 	for p.has() {
 		p.parseStatement()
@@ -128,10 +144,11 @@ func (p *parser) parseJunk() {
 Junk:
 	for p.has() {
 		t := p.peek()
-		p.pushToken(t)
 		if t.Kind == TokenVSpace {
+			p.pushToken(t)
 			break Junk
 		}
+		p.parseAtom()
 	}
 	p.commit(ParseJunk, start)
 }
@@ -151,12 +168,13 @@ Mods:
 		found = true
 		p.pushToken(t)
 	}
-	p.parseJunk()
+	// TODO Parse assignment?
+	p.parseAtom()
 	if found {
 		p.commit(ParseModify, start)
 	}
 }
 
 func (p *parser) parseStatement() {
-	p.parseModify()
+	p.parseJunk()
 }
