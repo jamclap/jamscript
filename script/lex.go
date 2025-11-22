@@ -30,6 +30,7 @@ const (
 	TokenAs
 	TokenBreak
 	TokenClass
+	TokenComma
 	TokenConst
 	TokenContinue
 	TokenElse
@@ -87,6 +88,9 @@ func (l *lexer) lex() {
 				l.next()
 				l.push(TokenStringOpen, start)
 				l.str()
+			case ',':
+				l.next()
+				l.push(TokenComma, start)
 			case '(':
 				l.next()
 				l.push(TokenRoundOpen, start)

@@ -35,6 +35,7 @@ const (
 	ParseFun
 	ParseJunk
 	ParseModify
+	ParseParam
 	ParseParams
 	ParseString
 	ParseToken
@@ -189,6 +190,25 @@ Mods:
 	}
 }
 
+func (p *parser) parseParam() {
+	start := len(p.work)
+	if t := p.peek(); t.Kind == TokenId {
+		p.pushToken(t)
+	}
+Param:
+	for p.has() {
+		t := p.peek()
+		switch t.Kind {
+		case TokenComma:
+		case TokenRoundClose:
+			break Param
+		}
+		// TODO Parse type and such.
+		p.parseAtom()
+	}
+	p.commit(ParseParam, start)
+}
+
 func (p *parser) parseParams() {
 	start := len(p.work)
 	p.pushToken(p.peek())
@@ -196,11 +216,14 @@ Params:
 	for p.has() {
 		t := p.peek()
 		switch t.Kind {
+		case TokenComma:
+			p.pushToken(t)
 		case TokenRoundClose:
 			p.pushToken(t)
 			break Params
+		default:
+			p.parseParam()
 		}
-		p.pushToken(t)
 	}
 	p.commit(ParseParams, start)
 }
