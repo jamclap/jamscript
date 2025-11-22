@@ -1,3 +1,7 @@
 pub fun init(hub)
+	greet()
+end
+
+fun greet()
 	log("I say, \"Hi!\"")
 end

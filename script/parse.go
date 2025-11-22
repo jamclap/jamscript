@@ -78,9 +78,7 @@ type parser struct {
 
 func (p *parser) parse() {
 	p.parseBlock()
-	// Double commit at end.
-	// First pushes working nodes. Second pushes the root itself.
-	p.commit(ParseBlock, 0)
+	// Push the root itself.
 	p.commit(ParseBlock, 0)
 }
 
@@ -107,6 +105,10 @@ func (p *parser) peek() (t Token) {
 		t = p.tokens[p.index]
 	}
 	return
+}
+
+func (p *parser) pending(start int) int {
+	return len(p.work) - start
 }
 
 func (p *parser) push(node inParseNode) {
@@ -137,9 +139,20 @@ func (p *parser) parseAtom() {
 }
 
 func (p *parser) parseBlock() {
+	start := len(p.work)
+Block:
 	for p.has() {
-		p.parseStatement()
+		switch t := p.peek(); t.Kind {
+		case TokenVSpace:
+			p.pushToken(t)
+		case TokenEnd:
+			p.pushToken(t)
+			break Block
+		default:
+			p.parseStatement()
+		}
 	}
+	p.commit(ParseBlock, start)
 }
 
 func (p *parser) parseFun() {
@@ -151,6 +164,14 @@ func (p *parser) parseFun() {
 	if p.peek().Kind == TokenRoundOpen {
 		p.parseParams()
 	}
+	switch t := p.peek(); t.Kind {
+	case TokenThen:
+		p.pushToken(t)
+		// TODO Parse expr.
+		p.parseAtom()
+	case TokenVSpace:
+		p.parseBlock()
+	}
 	p.commit(ParseFun, start)
 }
 
@@ -160,12 +181,13 @@ Junk:
 	for p.has() {
 		t := p.peek()
 		if t.Kind == TokenVSpace {
-			p.pushToken(t)
 			break Junk
 		}
 		p.parseAtom()
 	}
-	p.commit(ParseJunk, start)
+	if p.pending(start) > 1 {
+		p.commit(ParseJunk, start)
+	}
 }
 
 func (p *parser) parseModify() {
