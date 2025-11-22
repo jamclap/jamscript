@@ -122,6 +122,8 @@ func (p *parser) parseAtom() {
 		return
 	}
 	switch t := p.peek(); t.Kind {
+	case TokenFun:
+		p.parseFun()
 	case TokenId:
 		p.pushToken(t)
 	case TokenPlug:
@@ -137,6 +139,18 @@ func (p *parser) parseBlock() {
 	for p.has() {
 		p.parseStatement()
 	}
+}
+
+func (p *parser) parseFun() {
+	start := len(p.work)
+	p.pushToken(p.peek())
+	if t := p.peek(); t.Kind == TokenId {
+		p.pushToken(t)
+	}
+	if p.peek().Kind == TokenRoundOpen {
+		p.parseParams()
+	}
+	p.commit(ParseFun, start)
 }
 
 func (p *parser) parseJunk() {
@@ -173,6 +187,22 @@ Mods:
 	if found {
 		p.commit(ParseModify, start)
 	}
+}
+
+func (p *parser) parseParams() {
+	start := len(p.work)
+	p.pushToken(p.peek())
+Params:
+	for p.has() {
+		t := p.peek()
+		switch t.Kind {
+		case TokenRoundClose:
+			p.pushToken(t)
+			break Params
+		}
+		p.pushToken(t)
+	}
+	p.commit(ParseParams, start)
 }
 
 func (p *parser) parseStatement() {
