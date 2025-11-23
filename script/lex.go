@@ -78,7 +78,7 @@ func (l *lexer) lex() {
 	for l.has() {
 		r := l.peek()
 		switch {
-		case unicode.IsLetter(r) || r == '_':
+		case unicode.IsLetter(r) || r == '$' || r == '_':
 			l.id()
 		case r == ' ' || r == '\t':
 			l.hspace()
@@ -154,6 +154,7 @@ HSpace:
 
 func (l *lexer) id() {
 	start := l.index
+	l.next()
 Id:
 	for l.has() {
 		r := l.peek()

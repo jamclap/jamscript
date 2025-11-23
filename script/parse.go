@@ -120,6 +120,25 @@ func (p *parser) pushToken(t Token) {
 	p.index++
 }
 
+func (p *parser) parseArgs() {
+	start := len(p.work)
+	p.pushToken(p.peek())
+Params:
+	for p.has() {
+		t := p.peek()
+		switch t.Kind {
+		case TokenComma, TokenVSpace:
+			p.pushToken(t)
+		case TokenRoundClose:
+			p.pushToken(t)
+			break Params
+		default:
+			p.parseExpr()
+		}
+	}
+	p.commit(ParseParams, start)
+}
+
 func (p *parser) parseAtom() {
 	if !p.has() {
 		return
@@ -129,12 +148,14 @@ func (p *parser) parseAtom() {
 		p.parseFun()
 	case TokenId:
 		p.pushToken(t)
-	case TokenPlug:
-	case TokenPub:
+	case TokenPlug, TokenPub:
 		p.parseModify()
+	case TokenStringOpen:
+		p.parseString()
 	default:
-		// TODO Fix.
+		start := len(p.work)
 		p.pushToken(t)
+		p.commit(ParseJunk, start)
 	}
 }
 
@@ -155,6 +176,19 @@ Block:
 	p.commit(ParseBlock, start)
 }
 
+func (p *parser) parseCall() {
+	start := len(p.work)
+	p.parseAtom()
+	if p.peek().Kind == TokenRoundOpen {
+		p.parseArgs()
+		p.commit(ParseCall, start)
+	}
+}
+
+func (p *parser) parseExpr() {
+	p.parseCall()
+}
+
 func (p *parser) parseFun() {
 	start := len(p.work)
 	p.pushToken(p.peek())
@@ -167,27 +201,11 @@ func (p *parser) parseFun() {
 	switch t := p.peek(); t.Kind {
 	case TokenThen:
 		p.pushToken(t)
-		// TODO Parse expr.
-		p.parseAtom()
+		p.parseExpr()
 	case TokenVSpace:
 		p.parseBlock()
 	}
 	p.commit(ParseFun, start)
-}
-
-func (p *parser) parseJunk() {
-	start := len(p.work)
-Junk:
-	for p.has() {
-		t := p.peek()
-		if t.Kind == TokenVSpace {
-			break Junk
-		}
-		p.parseAtom()
-	}
-	if p.pending(start) > 1 {
-		p.commit(ParseJunk, start)
-	}
 }
 
 func (p *parser) parseModify() {
@@ -197,16 +215,14 @@ Mods:
 	for p.has() {
 		t := p.peek()
 		switch t.Kind {
-		case TokenPlug:
-		case TokenPub:
+		case TokenPlug, TokenPub:
 		default:
 			break Mods
 		}
 		found = true
 		p.pushToken(t)
 	}
-	// TODO Parse assignment?
-	p.parseAtom()
+	p.parseExpr()
 	if found {
 		p.commit(ParseModify, start)
 	}
@@ -214,19 +230,18 @@ Mods:
 
 func (p *parser) parseParam() {
 	start := len(p.work)
-	if t := p.peek(); t.Kind == TokenId {
-		p.pushToken(t)
-	}
 Param:
 	for p.has() {
+		println(p.index)
 		t := p.peek()
 		switch t.Kind {
-		case TokenComma:
-		case TokenRoundClose:
+		case TokenComma, TokenRoundClose:
 			break Param
+		case TokenVSpace:
+			p.pushToken(t)
+		default:
+			p.parseExpr()
 		}
-		// TODO Parse type and such.
-		p.parseAtom()
 	}
 	p.commit(ParseParam, start)
 }
@@ -238,7 +253,7 @@ Params:
 	for p.has() {
 		t := p.peek()
 		switch t.Kind {
-		case TokenComma:
+		case TokenComma, TokenVSpace:
 			p.pushToken(t)
 		case TokenRoundClose:
 			p.pushToken(t)
@@ -251,5 +266,19 @@ Params:
 }
 
 func (p *parser) parseStatement() {
-	p.parseJunk()
+	p.parseExpr()
+}
+
+func (p *parser) parseString() {
+	start := len(p.work)
+	p.pushToken(p.peek())
+Params:
+	for p.has() {
+		t := p.peek()
+		p.pushToken(t)
+		if t.Kind == TokenStringClose {
+			break Params
+		}
+	}
+	p.commit(ParseString, start)
 }
