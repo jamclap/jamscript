@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"unicode"
 	"unicode/utf8"
+	"unique"
 )
 
 func Lex(source string) []Token {
@@ -16,11 +17,11 @@ func Lex(source string) []Token {
 
 type Token struct {
 	Kind TokenKind
-	Text string
+	Text unique.Handle[string]
 }
 
 func (t Token) String() string {
-	return fmt.Sprintf("%s \"%s\"", t.Kind, t.Text)
+	return fmt.Sprintf("%s \"%s\"", t.Kind, t.Text.Value())
 }
 
 type TokenKind int
@@ -130,7 +131,8 @@ func (l *lexer) peek() rune {
 
 func (l *lexer) push(kind TokenKind, start int) {
 	if start < l.index {
-		l.tokens = append(l.tokens, Token{Kind: kind, Text: l.source[start:l.index]})
+		text := unique.Make(l.source[start:l.index])
+		l.tokens = append(l.tokens, Token{Kind: kind, Text: text})
 	}
 }
 
