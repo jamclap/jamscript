@@ -107,10 +107,6 @@ func (p *parser) peek() (t Token) {
 	return
 }
 
-func (p *parser) pending(start int) int {
-	return len(p.work) - start
-}
-
 func (p *parser) push(node inParseNode) {
 	p.work = append(p.work, node)
 }
@@ -232,7 +228,6 @@ func (p *parser) parseParam() {
 	start := len(p.work)
 Param:
 	for p.has() {
-		println(p.index)
 		t := p.peek()
 		switch t.Kind {
 		case TokenComma, TokenRoundClose:
