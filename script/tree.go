@@ -2,23 +2,26 @@ package script
 
 import "unique"
 
-func Norm(parse []ParseNode) Node {
-	// TODO Convert internal repr to arrays then nodes
-	return nil
-}
-
 type Node interface{}
 
-type inTree struct {
-	nodes []inNode // TODO convert to array of interface later?
-	funs  []inFun  // TODO convert to flat array of Fun?
-	vars  []inVar  // TODO convert to flat array of Var?
+type Idx[T any] int
+
+type Source struct {
+	Path  unique.Handle[string]
+	Start int
+	End   int
 }
 
-type inFun struct {
-	id     unique.Handle[string]
-	params []Range // Var
-	kids   []Range // Node
+type inTreeBuilder struct {
+	tree    inTree
+	working inTree
+}
+
+type inTree struct {
+	nodes   []inNode // TODO convert to array of interface later?
+	sources []Source // same length as `nodes` TODO Or need a ref idx?
+	funs    []inFun  // TODO convert to flat array of Fun?
+	vars    []inVar  // TODO convert to flat array of Var?
 }
 
 type inNode struct {
@@ -26,8 +29,16 @@ type inNode struct {
 	index int // array depends on Kind
 }
 
+type inFun struct {
+	name   unique.Handle[string]
+	params []Range[inVar]
+	ret    Idx[inNode]
+	kids   []Range[inNode]
+}
+
 type inVar struct {
-	id unique.Handle[string]
+	name     unique.Handle[string]
+	typeInfo Idx[inNode]
 }
 
 type NodeKind int
