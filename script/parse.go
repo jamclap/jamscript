@@ -13,7 +13,7 @@ func Parse(tokens []Token) ParseNode {
 	for i, node := range p.nodes {
 		nodes[i] = ParseNode{
 			Kind:  node.kind,
-			Kids:  nodes[node.kidsStart:node.kidsEnd],
+			Kids:  nodes[node.kids.Start:node.kids.End],
 			Token: node.token,
 		}
 	}
@@ -62,11 +62,15 @@ func (n ParseNode) printAt(indent int) {
 	}
 }
 
+type Range struct {
+	Start int
+	End   int
+}
+
 type inParseNode struct {
-	kind      ParseKind
-	kidsStart int
-	kidsEnd   int
-	token     Token
+	kind  ParseKind
+	kids  Range
+	token Token
 }
 
 type parser struct {
@@ -85,7 +89,10 @@ func (p *parser) parse() {
 func (p *parser) commit(kind ParseKind, start int) {
 	oldLen := len(p.nodes)
 	p.nodes = append(p.nodes, p.work[start:]...)
-	parent := inParseNode{kind: kind, kidsStart: oldLen, kidsEnd: len(p.nodes)}
+	parent := inParseNode{
+		kind: kind,
+		kids: Range{Start: oldLen, End: len(p.nodes)},
+	}
 	p.work = append(p.work[:start], parent)
 }
 
