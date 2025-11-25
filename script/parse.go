@@ -2,6 +2,7 @@ package script
 
 import (
 	"fmt"
+	"log"
 )
 
 func Parse(tokens []Token) ParseNode {
@@ -47,6 +48,35 @@ const (
 )
 
 //go:generate stringer -type=ParseKind
+
+func (n ParseNode) ExpectToken(start int, kind TokenKind) int {
+	next, kid := n.Next(start)
+	if kid.Kind == ParseToken && kid.Token.Kind == kind {
+		return next
+	}
+	// TODO Record error.
+	log.Printf("Bad kid: %s %s\n", kid.Kind, kid.Token.Kind)
+	return len(n.Kids)
+}
+
+func (n ParseNode) Next(start int) (int, ParseNode) {
+	if n.Kind != ParseToken {
+		for i := start; i < len(n.Kids); i++ {
+			kid := n.Kids[i]
+			switch kid.Kind {
+			case ParseToken:
+				switch kid.Token.Kind {
+				case TokenHSpace:
+				default:
+					return i + 1, kid
+				}
+			default:
+				return i + 1, kid
+			}
+		}
+	}
+	return len(n.Kids), ParseNode{}
+}
 
 func (n ParseNode) Print() {
 	n.printAt(0)

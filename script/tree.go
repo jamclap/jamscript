@@ -1,48 +1,13 @@
 package script
 
-import "unique"
+import (
+	"log"
+	"unique"
+)
 
 type Node interface{}
 
 type Idx[T any] int
-
-type Ref[T any] struct {
-	Slice *[]T
-	Index int
-}
-
-func (r Ref[T]) Get() T {
-	return (*r.Slice)[r.Index]
-}
-
-func (r Ref[T]) Set(value T) {
-	(*r.Slice)[r.Index] = value
-}
-
-type RangeRef[T any] struct {
-	Slice *[]T
-	Range Range[T]
-}
-
-func (r RangeRef[T]) AssertIndex(index int) {
-	if index >= r.Len() {
-		panic("out of range")
-	}
-}
-
-func (r RangeRef[T]) Len() int {
-	return r.Range.End - r.Range.Start
-}
-
-func (r RangeRef[T]) Get(index int) T {
-	r.AssertIndex(index)
-	return (*r.Slice)[r.Range.Start+index]
-}
-
-func (r RangeRef[T]) Set(index int, value T) {
-	r.AssertIndex(index)
-	(*r.Slice)[r.Range.Start+index] = value
-}
 
 type Source struct {
 	Path  unique.Handle[string]
@@ -50,7 +15,7 @@ type Source struct {
 	End   int
 }
 
-type inTreeBuilder struct {
+type treeBuilder struct {
 	tree    inTree
 	working inTree
 }
@@ -94,3 +59,7 @@ const (
 )
 
 //go:generate stringer -type=NodeKind
+
+func (b *treeBuilder) pushFun(fun inFun) {
+	log.Printf("fun name %s\n", fun.name.Value())
+}

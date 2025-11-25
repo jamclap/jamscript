@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 
@@ -21,10 +20,5 @@ func main() {
 	tokens := script.Lex(source)
 	parseTree := script.Parse(tokens)
 	parseTree.Print()
-}
-
-func printTokens(tokens []script.Token) {
-	for _, token := range tokens {
-		fmt.Printf("%s\n", token)
-	}
+	script.Norm(parseTree)
 }
