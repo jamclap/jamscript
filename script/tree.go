@@ -8,6 +8,20 @@ type Node interface{}
 
 type Idx[T any] int
 
+type NodeFlags uint32
+
+const (
+	NodeFlagNone NodeFlags = 0
+	NodeFlagPlug NodeFlags = 1 << iota
+	NodeFlagPub
+)
+
+// Side info for each node that's not expected to be used often.
+type NodeInfo struct {
+	Flags  NodeFlags
+	Source Source
+}
+
 type Source struct {
 	Path  unique.Handle[string]
 	Start int
@@ -29,22 +43,14 @@ const (
 
 //go:generate stringer -type=NodeKind
 
-type NodeFlags uint32
-
-const (
-	NodeFlagNone NodeFlags = 0
-	NodeFlagPlug NodeFlags = 1 << iota
-	NodeFlagPub
-)
-
 type treeBuilder struct {
-	nodes   []inNode    // TODO convert to array of interface later?
-	flags   []NodeFlags // Same length as nodes.
-	sources []Source    // same length as nodes.
-	source  Source
-	funs    []inFun // TODO convert to flat array of Fun?
-	vars    []inVar // TODO convert to flat array of Var?
-	work    []inWork
+	nodes    []inNode   // TODO convert to array of interface later?
+	infos    []NodeInfo // Same length as nodes.
+	source   Source
+	funs     []inFun // TODO convert to flat array of Fun?
+	vars     []inVar // TODO convert to flat array of Var?
+	work     []inNode
+	workInfo []NodeInfo // Same length as work.
 }
 
 type inNode struct {
@@ -81,6 +87,6 @@ func newTreeBuilder() treeBuilder {
 
 func (b *treeBuilder) pushWork(node inNode) {
 	// TODO Update source during work.
-	// TODO Separate work arrays for each part?
-	b.work = append(b.work, inWork{inNode: node, Source: b.source})
+	b.work = append(b.work, node)
+	b.workInfo = append(b.workInfo, NodeInfo{Source: b.source})
 }
