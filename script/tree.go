@@ -1,7 +1,6 @@
 package script
 
 import (
-	"log"
 	"unique"
 )
 
@@ -15,16 +14,37 @@ type Source struct {
 	End   int
 }
 
-type treeBuilder struct {
-	tree    inTree
-	working inTree
-}
+type NodeKind int
 
-type inTree struct {
-	nodes   []inNode // TODO convert to array of interface later?
-	sources []Source // same length as `nodes` TODO Or need a ref idx?
-	funs    []inFun  // TODO convert to flat array of Fun?
-	vars    []inVar  // TODO convert to flat array of Var?
+const (
+	NodeNone NodeKind = iota
+	NodeArgs
+	NodeBlock
+	NodeFun
+	NodeCall
+	NodeParams
+	NodeString
+	NodeType
+)
+
+//go:generate stringer -type=NodeKind
+
+type NodeFlags uint32
+
+const (
+	NodeFlagNone NodeFlags = 0
+	NodeFlagPlug NodeFlags = 1 << iota
+	NodeFlagPub
+)
+
+type treeBuilder struct {
+	nodes   []inNode    // TODO convert to array of interface later?
+	flags   []NodeFlags // Same length as nodes.
+	sources []Source    // same length as nodes.
+	source  Source
+	funs    []inFun // TODO convert to flat array of Fun?
+	vars    []inVar // TODO convert to flat array of Var?
+	work    []inWork
 }
 
 type inNode struct {
@@ -45,21 +65,22 @@ type inVar struct {
 	typeInfo Idx[inNode]
 }
 
-type NodeKind int
+type inWork struct {
+	inNode
+	NodeFlags
+	Source
+}
 
-const (
-	NodeNone NodeKind = iota
-	NodeArgs
-	NodeBlock
-	NodeFun
-	NodeCall
-	NodeParams
-	NodeString
-	NodeType
-)
+func newTreeBuilder() treeBuilder {
+	// Init some with bogus at index 0 so valid are always nonzero.
+	return treeBuilder{
+		funs: make([]inFun, 1),
+		vars: make([]inVar, 1),
+	}
+}
 
-//go:generate stringer -type=NodeKind
-
-func (b *treeBuilder) pushFun(fun inFun) {
-	log.Printf("fun name %s\n", fun.name.Value())
+func (b *treeBuilder) pushWork(node inNode) {
+	// TODO Update source during work.
+	// TODO Separate work arrays for each part?
+	b.work = append(b.work, inWork{inNode: node, Source: b.source})
 }

@@ -7,7 +7,7 @@ import (
 
 func Norm(p ParseNode) {
 	// TODO Convert internal repr to arrays then nodes?
-	b := treeBuilder{}
+	b := newTreeBuilder()
 	b.normNode(p)
 }
 
@@ -72,7 +72,9 @@ func (b *treeBuilder) normFun(p ParseNode) {
 		_, part = p.Next(next)
 	}
 	b.expectNone(part)
-	b.pushFun(fun)
+	b.pushWork(inNode{kind: NodeFun, index: len(b.funs)})
+	b.funs = append(b.funs, fun)
+	log.Printf("fun name %s\n", fun.name.Value())
 }
 
 func (b *treeBuilder) normJunk(p ParseNode) {
@@ -98,10 +100,10 @@ Modify:
 			break Modify
 		}
 	}
-	// TODO Set modifiers for the part.
 	b.normNode(part)
 	_, part = p.Next(next)
 	b.expectNone(part)
+	// TODO Set modifiers for the part.
 	_ = plug
 	_ = pub
 }
