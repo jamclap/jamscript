@@ -60,9 +60,9 @@ type inNode struct {
 
 type inFun struct {
 	name   unique.Handle[string]
-	params []Range[inVar]
+	params Range[inVar]
 	ret    Idx[inNode]
-	kids   []Range[inNode]
+	kids   Range[inNode]
 	// params RangeRef[inVar]
 }
 
@@ -74,8 +74,9 @@ type inVar struct {
 func newTreeBuilder() treeBuilder {
 	// Init some with bogus at index 0 so valid are always nonzero.
 	return treeBuilder{
-		funs: make([]inFun, 1),
-		vars: make([]inVar, 1),
+		funs:  make([]inFun, 1),
+		nodes: make([]inNode, 1),
+		vars:  make([]inVar, 1),
 	}
 }
 

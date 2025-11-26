@@ -63,7 +63,7 @@ func (b *treeBuilder) normFun(p ParseNode) {
 		next, part = p.Next(next)
 	}
 	if part.Kind == ParseParams {
-		b.normParams(part)
+		fun.params = b.normParams(part)
 		next, part = p.Next(next)
 	}
 	// TODO Return type.
@@ -74,7 +74,7 @@ func (b *treeBuilder) normFun(p ParseNode) {
 	b.expectNone(part)
 	b.pushWork(inNode{kind: NodeFun, index: len(b.funs)})
 	b.funs = append(b.funs, fun)
-	log.Printf("fun %s\n", fun.name.Value())
+	log.Printf("fun %s %v\n", fun.name.Value(), fun.params)
 }
 
 func (b *treeBuilder) normJunk(p ParseNode) {
@@ -113,11 +113,54 @@ func (b *treeBuilder) normNone(p ParseNode) {
 }
 
 func (b *treeBuilder) normParam(p ParseNode) {
-	// panic("unimplemented")
+	v := inVar{}
+	next, part := p.Next(0)
+	if part.Token.Kind == TokenId {
+		v.name = part.Token.Text
+		next, part = p.Next(next)
+	}
+	if part.Kind != ParseNone {
+		n := len(b.nodes)
+		b.normNode(part)
+		// TODO How to make this better?
+		if len(b.nodes) > n {
+			v.typeInfo = Idx[inNode](n)
+		}
+		_, part = p.Next(next)
+	}
+	b.expectNone(part)
+	b.vars = append(b.vars, v)
 }
 
-func (b *treeBuilder) normParams(p ParseNode) {
-	// panic("unimplemented")
+func (b *treeBuilder) normParams(p ParseNode) (result Range[inVar]) {
+	startVar := len(b.vars)
+	next := p.ExpectToken(0, TokenRoundOpen)
+	part := ParseNode{}
+Params:
+	for {
+		next, part = p.Next(next)
+		switch part.Kind {
+		case ParseParam:
+			b.normParam(part)
+		default:
+			switch part.Token.Kind {
+			case TokenComma:
+				// TODO Error on repeated.
+			default:
+				break Params
+			}
+		}
+	}
+	if part.Token.Kind != TokenRoundClose {
+		log.Printf("Unexpected: %v\n", part)
+	}
+	_, part = p.Next(next)
+	b.expectNone(part)
+	result = Range[inVar]{Start: startVar, End: len(b.vars)}
+	if result.End == result.Start {
+		result = Range[inVar]{}
+	}
+	return
 }
 
 func (b *treeBuilder) normString(p ParseNode) {
