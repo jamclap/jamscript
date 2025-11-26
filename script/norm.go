@@ -9,6 +9,15 @@ func Norm(p ParseNode) {
 	// TODO Convert internal repr to arrays then nodes?
 	b := newTreeBuilder()
 	b.normNode(p)
+	// Fake block to commit the top.
+	b.commitBlock(0)
+	pop(&b.blocks)
+	log.Printf("norm done")
+	log.Printf("nodes: %+v\n", b.nodes)
+	log.Printf("infos: %+v\n", b.infos)
+	log.Printf("blocks: %+v\n", b.blocks)
+	log.Printf("funs: %+v\n", b.funs)
+	log.Printf("vars: %+v\n", b.vars)
 }
 
 func (*treeBuilder) expectNone(part ParseNode) {
@@ -45,9 +54,11 @@ func (b *treeBuilder) normNode(p ParseNode) {
 }
 
 func (b *treeBuilder) normBlock(p ParseNode) {
+	start := len(b.work)
 	for _, kid := range p.Kids {
 		b.normNode(kid)
 	}
+	b.commitBlock(start)
 }
 
 func (b *treeBuilder) normCall(p ParseNode) {
@@ -69,6 +80,7 @@ func (b *treeBuilder) normFun(p ParseNode) {
 	// TODO Return type.
 	if part.Kind == ParseBlock {
 		b.normBlock(part)
+		fun.kids = b.popWorkBlock().kids
 		_, part = p.Next(next)
 	}
 	b.expectNone(part)
@@ -100,7 +112,7 @@ Modify:
 	b.normNode(part)
 	_, part = p.Next(next)
 	b.expectNone(part)
-	b.workInfo[len(b.workInfo)-1].Flags |= flags
+	last(&b.workInfo).Flags |= flags
 	// log.Printf(
 	// 	"flags: %+v %+v\n",
 	// 	b.workInfo[len(b.workInfo)-1],
@@ -120,19 +132,21 @@ func (b *treeBuilder) normParam(p ParseNode) {
 		next, part = p.Next(next)
 	}
 	if part.Kind != ParseNone {
-		n := len(b.nodes)
+		// TODO Fix logic, and make it easy to do things like this.
+		// TODO Presumably need to commit the top of work and get that.
+		// TODO Use a wrapper with anonymous function for the helper?
+		// n := len(b.nodes)
 		b.normNode(part)
-		// TODO How to make this better?
-		if len(b.nodes) > n {
-			v.typeInfo = Idx[inNode](n)
-		}
+		// if len(b.nodes) > n {
+		// 	v.typeInfo = Idx[inNode](n)
+		// }
 		_, part = p.Next(next)
 	}
 	b.expectNone(part)
 	b.vars = append(b.vars, v)
 }
 
-func (b *treeBuilder) normParams(p ParseNode) (result Range[inVar]) {
+func (b *treeBuilder) normParams(p ParseNode) Range[inVar] {
 	startVar := len(b.vars)
 	next := p.ExpectToken(0, TokenRoundOpen)
 	part := ParseNode{}
@@ -156,11 +170,11 @@ Params:
 	}
 	_, part = p.Next(next)
 	b.expectNone(part)
-	result = Range[inVar]{Start: startVar, End: len(b.vars)}
+	result := Range[inVar]{Start: startVar, End: len(b.vars)}
 	if result.End == result.Start {
 		result = Range[inVar]{}
 	}
-	return
+	return result
 }
 
 func (b *treeBuilder) normString(p ParseNode) {
