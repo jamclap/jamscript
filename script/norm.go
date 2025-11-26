@@ -74,7 +74,7 @@ func (b *treeBuilder) normFun(p ParseNode) {
 	b.expectNone(part)
 	b.pushWork(inNode{kind: NodeFun, index: len(b.funs)})
 	b.funs = append(b.funs, fun)
-	log.Printf("fun name %s\n", fun.name.Value())
+	log.Printf("fun %s\n", fun.name.Value())
 }
 
 func (b *treeBuilder) normJunk(p ParseNode) {
@@ -84,18 +84,15 @@ func (b *treeBuilder) normJunk(p ParseNode) {
 func (b *treeBuilder) normModify(p ParseNode) {
 	next := 0
 	part := ParseNode{}
-	plug := false
-	pub := false
+	var flags NodeFlags
 Modify:
 	for {
 		next, part = p.Next(next)
 		switch part.Token.Kind {
 		case TokenPlug:
-			log.Printf("plug\n")
-			plug = true
+			flags |= NodeFlagPlug
 		case TokenPub:
-			log.Printf("pub\n")
-			pub = true
+			flags |= NodeFlagPub
 		default:
 			break Modify
 		}
@@ -103,9 +100,12 @@ Modify:
 	b.normNode(part)
 	_, part = p.Next(next)
 	b.expectNone(part)
-	// TODO Set modifiers for the part.
-	_ = plug
-	_ = pub
+	b.workInfo[len(b.workInfo)-1].Flags |= flags
+	// log.Printf(
+	// 	"flags: %+v %+v\n",
+	// 	b.workInfo[len(b.workInfo)-1],
+	// 	b.work[len(b.work)-1],
+	// )
 }
 
 func (b *treeBuilder) normNone(p ParseNode) {

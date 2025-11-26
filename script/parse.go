@@ -9,6 +9,7 @@ func Parse(tokens []Token) ParseNode {
 	p := parser{
 		tokens: tokens,
 	}
+	p.nodes = make([]inParseNode, 1) // so 0 is none
 	p.parse()
 	nodes := make([]ParseNode, len(p.nodes))
 	for i, node := range p.nodes {

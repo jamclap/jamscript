@@ -11,9 +11,9 @@ type Idx[T any] int
 type NodeFlags uint32
 
 const (
-	NodeFlagNone NodeFlags = 0
 	NodeFlagPlug NodeFlags = 1 << iota
 	NodeFlagPub
+	NodeFlagNone NodeFlags = 0
 )
 
 // Side info for each node that's not expected to be used often.
@@ -69,12 +69,6 @@ type inFun struct {
 type inVar struct {
 	name     unique.Handle[string]
 	typeInfo Idx[inNode]
-}
-
-type inWork struct {
-	inNode
-	NodeFlags
-	Source
 }
 
 func newTreeBuilder() treeBuilder {
