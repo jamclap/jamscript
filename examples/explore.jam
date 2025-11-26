@@ -53,6 +53,7 @@ pub fun this.blah(a, b)
 	case a == d then 3
 	else 4
 	end
+	var a = things.map(fun(x) then x + 1)
 end
 
 end class # optional
