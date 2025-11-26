@@ -11,28 +11,28 @@ func _() {
 	_ = x[TokenNone-0]
 	_ = x[TokenAs-1]
 	_ = x[TokenBreak-2]
-	_ = x[TokenClass-3]
-	_ = x[TokenComma-4]
-	_ = x[TokenConst-5]
-	_ = x[TokenContinue-6]
-	_ = x[TokenElse-7]
-	_ = x[TokenEnd-8]
-	_ = x[TokenEnum-9]
-	_ = x[TokenFor-10]
-	_ = x[TokenFrom-11]
-	_ = x[TokenFun-12]
-	_ = x[TokenHSpace-13]
-	_ = x[TokenId-14]
-	_ = x[TokenIf-15]
-	_ = x[TokenIs-16]
-	_ = x[TokenImport-17]
-	_ = x[TokenJunk-18]
-	_ = x[TokenPlug-19]
-	_ = x[TokenPub-20]
-	_ = x[TokenReturn-21]
-	_ = x[TokenRoundClose-22]
-	_ = x[TokenRoundOpen-23]
-	_ = x[TokenSwap-24]
+	_ = x[TokenChange-3]
+	_ = x[TokenClass-4]
+	_ = x[TokenComma-5]
+	_ = x[TokenConst-6]
+	_ = x[TokenContinue-7]
+	_ = x[TokenElse-8]
+	_ = x[TokenEnd-9]
+	_ = x[TokenEnum-10]
+	_ = x[TokenFor-11]
+	_ = x[TokenFrom-12]
+	_ = x[TokenFun-13]
+	_ = x[TokenHSpace-14]
+	_ = x[TokenId-15]
+	_ = x[TokenIf-16]
+	_ = x[TokenIs-17]
+	_ = x[TokenImport-18]
+	_ = x[TokenJunk-19]
+	_ = x[TokenPlug-20]
+	_ = x[TokenPub-21]
+	_ = x[TokenReturn-22]
+	_ = x[TokenRoundClose-23]
+	_ = x[TokenRoundOpen-24]
 	_ = x[TokenStringEscape-25]
 	_ = x[TokenStringText-26]
 	_ = x[TokenStringClose-27]
@@ -47,9 +47,9 @@ func _() {
 	_ = x[TokenVartype-36]
 }
 
-const _TokenKind_name = "TokenNoneTokenAsTokenBreakTokenClassTokenCommaTokenConstTokenContinueTokenElseTokenEndTokenEnumTokenForTokenFromTokenFunTokenHSpaceTokenIdTokenIfTokenIsTokenImportTokenJunkTokenPlugTokenPubTokenReturnTokenRoundCloseTokenRoundOpenTokenSwapTokenStringEscapeTokenStringTextTokenStringCloseTokenStringOpenTokenStructTokenSwitchTokenThenTokenVSpaceTokenUnionTokenUseTokenVarTokenVartype"
+const _TokenKind_name = "TokenNoneTokenAsTokenBreakTokenChangeTokenClassTokenCommaTokenConstTokenContinueTokenElseTokenEndTokenEnumTokenForTokenFromTokenFunTokenHSpaceTokenIdTokenIfTokenIsTokenImportTokenJunkTokenPlugTokenPubTokenReturnTokenRoundCloseTokenRoundOpenTokenStringEscapeTokenStringTextTokenStringCloseTokenStringOpenTokenStructTokenSwitchTokenThenTokenVSpaceTokenUnionTokenUseTokenVarTokenVartype"
 
-var _TokenKind_index = [...]uint16{0, 9, 16, 26, 36, 46, 56, 69, 78, 86, 95, 103, 112, 120, 131, 138, 145, 152, 163, 172, 181, 189, 200, 215, 229, 238, 255, 270, 286, 301, 312, 323, 332, 343, 353, 361, 369, 381}
+var _TokenKind_index = [...]uint16{0, 9, 16, 26, 37, 47, 57, 67, 80, 89, 97, 106, 114, 123, 131, 142, 149, 156, 163, 174, 183, 192, 200, 211, 226, 240, 257, 272, 288, 303, 314, 325, 334, 345, 355, 363, 371, 383}
 
 func (i TokenKind) String() string {
 	idx := int(i) - 0

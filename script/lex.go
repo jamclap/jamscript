@@ -30,6 +30,7 @@ const (
 	TokenNone TokenKind = iota
 	TokenAs
 	TokenBreak
+	TokenChange
 	TokenClass
 	TokenComma
 	TokenConst
@@ -51,7 +52,6 @@ const (
 	TokenReturn
 	TokenRoundClose
 	TokenRoundOpen
-	TokenSwap
 	TokenStringEscape
 	TokenStringText
 	TokenStringClose
@@ -214,6 +214,7 @@ var keys = map[string]TokenKind{
 	"as":       TokenAs,
 	"break":    TokenBreak,
 	"class":    TokenClass,
+	"change":   TokenChange,
 	"const":    TokenConst,
 	"continue": TokenContinue,
 	"else":     TokenElse,
@@ -228,7 +229,6 @@ var keys = map[string]TokenKind{
 	"plug":     TokenPlug,
 	"pub":      TokenPub,
 	"return":   TokenReturn,
-	"swap":     TokenSwap,
 	"struct":   TokenStruct,
 	"switch":   TokenSwitch,
 	"then":     TokenThen,
