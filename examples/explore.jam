@@ -27,7 +27,7 @@ class Something(x, var y)
 var z = y
 
 pub fun this.blah(a, b)
-	var c Int
+	swap var c Int
 	# c == 0 before assignment
 	c = 1
 	c = 2
