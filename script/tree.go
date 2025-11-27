@@ -7,7 +7,6 @@ import (
 
 type Tree struct {
 	Root    Node
-	Flags   []NodeFlags
 	Sources []Source
 }
 
@@ -27,23 +26,27 @@ type Block struct {
 	Kids []Node
 }
 
+type Decl struct {
+	Name  unique.Handle[string]
+	Flags NodeFlags
+}
+
 type Fun struct {
-	Index  int
-	Name   unique.Handle[string]
+	Index int
+	Decl
 	Params []Var
 	Ret    Node
 	Kids   []Node
 }
 
 type Var struct {
-	Index    int
-	Name     unique.Handle[string]
+	Index int
+	Decl
 	TypeInfo Node
 }
 
 // Side info for each node that's not expected to be used often.
 type NodeInfo struct {
-	Flags  NodeFlags
 	Source Source
 }
 
@@ -88,14 +91,14 @@ type inBlock struct {
 }
 
 type inFun struct {
-	name   unique.Handle[string]
+	Decl
 	params Range[inNode]
 	ret    Idx[inNode]
 	kids   Range[inNode]
 }
 
 type inVar struct {
-	name     unique.Handle[string]
+	Decl
 	typeInfo Idx[inNode]
 }
 

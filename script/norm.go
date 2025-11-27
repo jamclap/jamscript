@@ -65,7 +65,7 @@ func (b *treeBuilder) normFun(p ParseNode) {
 	next := p.ExpectToken(0, TokenFun)
 	next, part := p.Next(next)
 	if part.Token.Kind == TokenId {
-		fun.name = part.Token.Text
+		fun.Name = part.Token.Text
 		next, part = p.Next(next)
 	}
 	if part.Kind == ParseParams {
@@ -82,7 +82,7 @@ func (b *treeBuilder) normFun(p ParseNode) {
 	b.expectNone(part)
 	b.pushWork(inNode{kind: NodeFun, index: len(b.funs)})
 	b.funs = append(b.funs, fun)
-	log.Printf("fun %s %v\n", fun.name.Value(), fun.params)
+	log.Printf("fun %s %v\n", fun.Name.Value(), fun.params)
 }
 
 func (b *treeBuilder) normJunk(p ParseNode) {
@@ -108,7 +108,13 @@ Modify:
 	b.normNode(part)
 	_, part = p.Next(next)
 	b.expectNone(part)
-	last(&b.workInfo).Flags |= flags
+	w := b.work[len(b.work)-1]
+	switch w.kind {
+	case NodeFun:
+		b.funs[w.index].Flags |= flags
+	case NodeVar:
+		b.vars[w.index].Flags |= flags
+	}
 	// log.Printf(
 	// 	"flags: %+v %+v\n",
 	// 	b.workInfo[len(b.workInfo)-1],
@@ -124,7 +130,7 @@ func (b *treeBuilder) normParam(p ParseNode) {
 	v := inVar{}
 	next, part := p.Next(0)
 	if part.Token.Kind == TokenId {
-		v.name = part.Token.Text
+		v.Name = part.Token.Text
 		next, part = p.Next(next)
 	}
 	if part.Kind != ParseNone {
