@@ -69,7 +69,8 @@ func (b *treeBuilder) normFun(p ParseNode) {
 		next, part = p.Next(next)
 	}
 	if part.Kind == ParseParams {
-		fun.params = b.normParams(part)
+		b.normParams(part)
+		fun.params = b.popWorkBlock().kids
 		next, part = p.Next(next)
 	}
 	// TODO Return type.
@@ -127,8 +128,6 @@ func (b *treeBuilder) normParam(p ParseNode) {
 		next, part = p.Next(next)
 	}
 	if part.Kind != ParseNone {
-		// TODO We need work areas for all if we can make params inside params!
-		//
 		// TODO Fix logic, and make it easy to do things like this.
 		// TODO Presumably need to commit the top of work and get that.
 		// TODO Use a wrapper with anonymous function for the helper?
@@ -142,12 +141,12 @@ func (b *treeBuilder) normParam(p ParseNode) {
 	b.expectNone(part)
 	// Param instances are only referenced directly through params, so nodes can
 	// go straight on without prior work storage.
-	b.pushNode(inNode{kind: NodeVar, index: len(b.vars)})
+	b.pushWork(inNode{kind: NodeVar, index: len(b.vars)})
 	b.vars = append(b.vars, v)
 }
 
-func (b *treeBuilder) normParams(p ParseNode) Range[inVar] {
-	startVar := len(b.vars)
+func (b *treeBuilder) normParams(p ParseNode) {
+	start := len(b.work)
 	next := p.ExpectToken(0, TokenRoundOpen)
 	part := ParseNode{}
 Params:
@@ -170,11 +169,7 @@ Params:
 	}
 	_, part = p.Next(next)
 	b.expectNone(part)
-	result := Range[inVar]{Start: startVar, End: len(b.vars)}
-	if result.End == result.Start {
-		result = Range[inVar]{}
-	}
-	return result
+	b.commitBlock(start)
 }
 
 func (b *treeBuilder) normString(p ParseNode) {

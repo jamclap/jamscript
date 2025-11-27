@@ -49,8 +49,7 @@ type NodeInfo struct {
 
 type Source struct {
 	Path  unique.Handle[string]
-	Start int
-	End   int
+	Range Range[rune]
 }
 
 type NodeKind int
@@ -61,7 +60,6 @@ const (
 	NodeBlock
 	NodeFun
 	NodeCall
-	NodeParams
 	NodeString
 	NodeVar
 	NodeType
@@ -91,7 +89,7 @@ type inBlock struct {
 
 type inFun struct {
 	name   unique.Handle[string]
-	params Range[inVar]
+	params Range[inNode]
 	ret    Idx[inNode]
 	kids   Range[inNode]
 }
