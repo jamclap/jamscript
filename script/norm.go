@@ -5,19 +5,14 @@ import (
 	"log"
 )
 
-func Norm(p ParseNode) {
+func Norm(p ParseNode) Tree {
 	// TODO Convert internal repr to arrays then nodes?
 	b := newTreeBuilder()
 	b.normNode(p)
 	// Fake block to commit the top.
 	b.commitBlock(0)
 	pop(&b.blocks)
-	log.Printf("norm done")
-	log.Printf("nodes: %+v\n", b.nodes)
-	log.Printf("infos: %+v\n", b.infos)
-	log.Printf("blocks: %+v\n", b.blocks)
-	log.Printf("funs: %+v\n", b.funs)
-	log.Printf("vars: %+v\n", b.vars)
+	return b.toTree()
 }
 
 func (*treeBuilder) expectNone(part ParseNode) {
@@ -132,6 +127,8 @@ func (b *treeBuilder) normParam(p ParseNode) {
 		next, part = p.Next(next)
 	}
 	if part.Kind != ParseNone {
+		// TODO We need work areas for all if we can make params inside params!
+		//
 		// TODO Fix logic, and make it easy to do things like this.
 		// TODO Presumably need to commit the top of work and get that.
 		// TODO Use a wrapper with anonymous function for the helper?
@@ -143,6 +140,9 @@ func (b *treeBuilder) normParam(p ParseNode) {
 		_, part = p.Next(next)
 	}
 	b.expectNone(part)
+	// Param instances are only referenced directly through params, so nodes can
+	// go straight on without prior work storage.
+	b.pushNode(inNode{kind: NodeVar, index: len(b.vars)})
 	b.vars = append(b.vars, v)
 }
 

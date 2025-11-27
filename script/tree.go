@@ -1,8 +1,15 @@
 package script
 
 import (
+	"log"
 	"unique"
 )
+
+type Tree struct {
+	Root    Node
+	Flags   []NodeFlags
+	Sources []Source
+}
 
 type Node interface{}
 
@@ -15,6 +22,24 @@ const (
 	NodeFlagPub
 	NodeFlagNone NodeFlags = 0
 )
+
+type Block struct {
+	Kids []Node
+}
+
+type Fun struct {
+	Index  int
+	Name   unique.Handle[string]
+	Params []Var
+	Ret    Node
+	Kids   []Node
+}
+
+type Var struct {
+	Index    int
+	Name     unique.Handle[string]
+	TypeInfo Node
+}
 
 // Side info for each node that's not expected to be used often.
 type NodeInfo struct {
@@ -38,6 +63,7 @@ const (
 	NodeCall
 	NodeParams
 	NodeString
+	NodeVar
 	NodeType
 )
 
@@ -86,6 +112,32 @@ func newTreeBuilder() treeBuilder {
 	}
 }
 
+func (b *treeBuilder) toTree() (t Tree) {
+	log.Printf("norm done")
+	log.Printf("nodes: %+v\n", b.nodes)
+	log.Printf("infos: %+v\n", b.infos)
+	log.Printf("blocks: %+v\n", b.blocks)
+	log.Printf("funs: %+v\n", b.funs)
+	log.Printf("vars: %+v\n", b.vars)
+	funs := make([]Fun, len(b.funs))
+	vars := make([]Var, len(b.vars))
+	nodes := make([]Node, len(b.nodes))
+	for i, node := range b.nodes {
+		switch node.kind {
+		case NodeFun:
+			f := &funs[node.index]
+			f.Index = i
+			nodes[i] = f
+		case NodeVar:
+			v := &vars[node.index]
+			v.Index = i
+			nodes[i] = v
+		}
+	}
+	t.Root = nodes[len(nodes)-1]
+	return
+}
+
 func (b *treeBuilder) commit(parent inNode, start int) {
 	// oldLen := len(b.nodes)
 	b.nodes = append(b.nodes, b.work[start:]...)
@@ -116,6 +168,12 @@ func (b *treeBuilder) popWork() {
 func (b *treeBuilder) popWorkBlock() inBlock {
 	b.popWork()
 	return pop(&b.blocks)
+}
+
+func (b *treeBuilder) pushNode(node inNode) {
+	// TODO Update source during work.
+	b.nodes = append(b.nodes, node)
+	b.infos = append(b.infos, NodeInfo{Source: b.source})
 }
 
 func (b *treeBuilder) pushWork(node inNode) {
