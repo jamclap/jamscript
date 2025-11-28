@@ -20,5 +20,6 @@ func main() {
 	tokens := script.Lex(source)
 	parseTree := script.Parse(tokens)
 	parseTree.Print()
-	script.Norm(parseTree)
+	tree := script.Norm(parseTree)
+	tree.Print()
 }

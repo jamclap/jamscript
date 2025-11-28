@@ -3,6 +3,7 @@ package script
 import (
 	"fmt"
 	"log"
+	"unique"
 )
 
 func Norm(p ParseNode) Tree {
@@ -67,6 +68,8 @@ func (b *treeBuilder) normFun(p ParseNode) {
 	if part.Token.Kind == TokenId {
 		fun.Name = part.Token.Text
 		next, part = p.Next(next)
+	} else {
+		fun.Name = unique.Make("")
 	}
 	if part.Kind == ParseParams {
 		b.normParams(part)
@@ -82,7 +85,7 @@ func (b *treeBuilder) normFun(p ParseNode) {
 	b.expectNone(part)
 	b.pushWork(inNode{kind: NodeFun, index: len(b.funs)})
 	b.funs = append(b.funs, fun)
-	log.Printf("fun %s %v\n", fun.Name.Value(), fun.params)
+	// log.Printf("fun %s %v\n", fun.Name.Value(), fun.params)
 }
 
 func (b *treeBuilder) normJunk(p ParseNode) {
@@ -132,6 +135,8 @@ func (b *treeBuilder) normParam(p ParseNode) {
 	if part.Token.Kind == TokenId {
 		v.Name = part.Token.Text
 		next, part = p.Next(next)
+	} else {
+		v.Name = unique.Make("")
 	}
 	if part.Kind != ParseNone {
 		// TODO Fix logic, and make it easy to do things like this.

@@ -1,7 +1,7 @@
 package script
 
 import (
-	"log"
+	"fmt"
 	"unique"
 )
 
@@ -23,7 +23,8 @@ const (
 )
 
 type Block struct {
-	Kids []Node
+	Index int
+	Kids  []Node
 }
 
 type Decl struct {
@@ -34,7 +35,7 @@ type Decl struct {
 type Fun struct {
 	Index int
 	Decl
-	Params []Var
+	Params []Node // Var, but TODO Can't say Var unless we force contiguous
 	Ret    Node
 	Kids   []Node
 }
@@ -70,12 +71,81 @@ const (
 
 //go:generate stringer -type=NodeKind
 
+type TreePrinter struct {
+	Tree *Tree
+	TreePrinterOptions
+}
+
+type TreePrinterOptions struct {
+	// TODO Options
+}
+
+func (t *Tree) Print() {
+	p := treePrinting{TreePrinter: TreePrinter{Tree: t}}
+	p.printAt(0, t.Root)
+}
+
+type treePrinting struct {
+	TreePrinter
+	needsGap bool
+}
+
+func (p *treePrinting) printAt(indent int, node Node) {
+	atRoot := node == p.Tree.Root
+	PrintIndent(indent)
+	switch n := node.(type) {
+	case nil:
+		println("nil")
+	case *Block:
+		nextIndent := indent
+		if !atRoot {
+			println("then")
+			nextIndent += 2
+		}
+		for i, kid := range n.Kids {
+			p.needsGap = atRoot && i > 0
+			p.printAt(nextIndent, kid)
+		}
+		if !atRoot {
+			PrintIndent(indent)
+			println("end")
+		}
+	case *Fun:
+		if p.needsGap {
+			println()
+		}
+		print("fun")
+		if n.Name.Value() != "" {
+			fmt.Printf(" %s", n.Name.Value())
+		}
+		// TODO If wide, print params on separate lines?
+		print("(")
+		for i, vnode := range n.Params {
+			if i > 0 {
+				print(", ")
+			}
+			v := vnode.(*Var)
+			print(v.Name.Value())
+		}
+		print(")")
+		println()
+		p.needsGap = false
+		for _, kid := range n.Kids {
+			p.printAt(indent+2, kid)
+		}
+		PrintIndent(indent)
+		println("end")
+	case *Var:
+		println("var")
+	}
+}
+
 type treeBuilder struct {
 	nodes    []inNode   // TODO convert to array of interface later?
 	infos    []NodeInfo // Same length as nodes.
-	blocks   []inBlock  // TODO convert to flat array of Fun?
-	funs     []inFun    // TODO convert to flat array of Fun?
-	vars     []inVar    // TODO convert to flat array of Var?
+	blocks   []inBlock
+	funs     []inFun
+	vars     []inVar // TODO Also workVars for contiguous params?
 	work     []inNode
 	workInfo []NodeInfo // Same length as work.
 	source   Source
@@ -93,13 +163,13 @@ type inBlock struct {
 type inFun struct {
 	Decl
 	params Range[inNode]
-	ret    Idx[inNode]
-	kids   Range[inNode]
+	// ret Idx[inNode]
+	kids Range[inNode]
 }
 
 type inVar struct {
 	Decl
-	typeInfo Idx[inNode]
+	// typeInfo Idx[inNode]
 }
 
 func newTreeBuilder() treeBuilder {
@@ -114,17 +184,23 @@ func newTreeBuilder() treeBuilder {
 }
 
 func (b *treeBuilder) toTree() (t Tree) {
-	log.Printf("norm done")
-	log.Printf("nodes: %+v\n", b.nodes)
-	log.Printf("infos: %+v\n", b.infos)
-	log.Printf("blocks: %+v\n", b.blocks)
-	log.Printf("funs: %+v\n", b.funs)
-	log.Printf("vars: %+v\n", b.vars)
+	// log.Printf("norm done")
+	// log.Printf("nodes: %+v\n", b.nodes)
+	// log.Printf("infos: %+v\n", b.infos)
+	// log.Printf("blocks: %+v\n", b.blocks)
+	// log.Printf("funs: %+v\n", b.funs)
+	// log.Printf("vars: %+v\n", b.vars)
+	nodes := make([]Node, len(b.nodes))
+	sources := make([]Source, len(b.nodes))
+	blocks := make([]Block, len(b.funs))
 	funs := make([]Fun, len(b.funs))
 	vars := make([]Var, len(b.vars))
-	nodes := make([]Node, len(b.nodes))
 	for i, node := range b.nodes {
 		switch node.kind {
+		case NodeBlock:
+			b := &blocks[node.index]
+			b.Index = i
+			nodes[i] = b
 		case NodeFun:
 			f := &funs[node.index]
 			f.Index = i
@@ -133,6 +209,24 @@ func (b *treeBuilder) toTree() (t Tree) {
 			v := &vars[node.index]
 			v.Index = i
 			nodes[i] = v
+		}
+		sources[i] = b.infos[i].Source
+	}
+	for i, b := range b.blocks {
+		blocks[i] = Block{
+			Kids: Slice(b.kids, nodes),
+		}
+	}
+	for i, f := range b.funs {
+		funs[i] = Fun{
+			Decl:   f.Decl,
+			Params: Slice(f.params, nodes),
+			Kids:   Slice(f.kids, nodes),
+		}
+	}
+	for i, v := range b.vars {
+		vars[i] = Var{
+			Decl: v.Decl,
 		}
 	}
 	t.Root = nodes[len(nodes)-1]

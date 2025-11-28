@@ -27,6 +27,14 @@ type Range[T any] struct {
 	End   int
 }
 
+func (r Range[T]) Slice(items []T) []T {
+	return items[r.Start:r.End]
+}
+
+func Slice[T any, U any](r Range[T], items []U) []U {
+	return items[r.Start:r.End]
+}
+
 type ParseNode struct {
 	Kind  ParseKind
 	Kids  []ParseNode
@@ -84,9 +92,7 @@ func (n ParseNode) Print() {
 }
 
 func (n ParseNode) printAt(indent int) {
-	for range indent {
-		print("  ")
-	}
+	PrintIndent(indent)
 	switch n.Kind {
 	case ParseToken:
 		fmt.Printf("%s\n", n.Token)
@@ -95,6 +101,12 @@ func (n ParseNode) printAt(indent int) {
 		for _, kid := range n.Kids {
 			kid.printAt(indent + 1)
 		}
+	}
+}
+
+func PrintIndent(indent int) {
+	for range indent {
+		print("  ")
 	}
 }
 
