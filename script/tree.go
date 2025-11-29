@@ -261,63 +261,43 @@ func (b *treeBuilder) toTree() (t Tree) {
 	// log.Printf("vars: %+v\n", b.vars)
 	nodes := make([]Node, len(b.nodes))
 	sources := make([]Source, len(b.nodes))
-	blocks := make([]Block, len(b.blocks))
-	calls := make([]Call, len(b.calls))
-	funs := make([]Fun, len(b.funs))
-	tokens := make([]TokenNode, len(b.tokens))
-	vars := make([]Var, len(b.vars))
 	for i, node := range b.nodes {
 		switch node.kind {
 		case NodeBlock:
-			b := &blocks[node.index]
-			b.Index = i
-			nodes[i] = b
+			b := b.blocks[node.index]
+			nodes[i] = &Block{
+				Index: i,
+				Kids:  Slice(b.kids, nodes),
+			}
 		case NodeCall:
-			c := &calls[node.index]
-			c.Index = i
-			nodes[i] = c
+			c := b.calls[node.index]
+			nodes[i] = &Call{
+				Index:  i,
+				Callee: nodes[c.callee],
+				Args:   Slice(c.args, nodes),
+			}
 		case NodeFun:
-			f := &funs[node.index]
-			f.Index = i
-			nodes[i] = f
+			f := b.funs[node.index]
+			nodes[i] = &Fun{
+				Index:  i,
+				Decl:   f.Decl,
+				Params: Slice(f.params, nodes),
+				Kids:   Slice(f.kids, nodes),
+			}
 		case NodeToken:
-			tok := &tokens[node.index]
-			tok.Index = i
-			nodes[i] = tok
+			tok := b.tokens[node.index]
+			nodes[i] = &TokenNode{
+				Index: i,
+				Token: tok,
+			}
 		case NodeVar:
-			v := &vars[node.index]
-			v.Index = i
-			nodes[i] = v
+			v := b.vars[node.index]
+			nodes[i] = &Var{
+				Index: i,
+				Decl:  v.Decl,
+			}
 		}
 		sources[i] = b.infos[i].Source
-	}
-	for i, b := range b.blocks {
-		blocks[i] = Block{
-			Kids: Slice(b.kids, nodes),
-		}
-	}
-	for i, c := range b.calls {
-		calls[i] = Call{
-			Callee: nodes[c.callee],
-			Args:   Slice(c.args, nodes),
-		}
-	}
-	for i, f := range b.funs {
-		funs[i] = Fun{
-			Decl:   f.Decl,
-			Params: Slice(f.params, nodes),
-			Kids:   Slice(f.kids, nodes),
-		}
-	}
-	for i, tok := range b.tokens {
-		tokens[i] = TokenNode{
-			Token: tok,
-		}
-	}
-	for i, v := range b.vars {
-		vars[i] = Var{
-			Decl: v.Decl,
-		}
 	}
 	// log.Printf("copy done\n")
 	// log.Printf("nodes: %+v\n", nodes)
