@@ -11,3 +11,19 @@ BenchmarkParseExplore-8   	   14938	     79098 ns/op	  165554 B/op	      31 allo
 BenchmarkNormExplore-8    	   12178	     94811 ns/op	  198192 B/op	      87 allocs/op
 PASS
 ok  	github.com/jamclap/jamscript	9.569s
+
+(pprof) top
+Showing nodes accounting for 13.87GB, 99.50% of 13.94GB total
+Dropped 20 nodes (cum <= 0.07GB)
+Showing top 10 nodes out of 45
+      flat  flat%   sum%        cum   cum%
+    4.78GB 34.31% 34.31%     4.78GB 34.31%  github.com/jamclap/jamscript/script.(*parser).commit (inline)
+    2.93GB 21.00% 55.31%     2.93GB 21.01%  github.com/jamclap/jamscript/script.(*lexer).push
+    2.60GB 18.65% 73.96%     9.87GB 70.82%  github.com/jamclap/jamscript/script.Parse
+    2.49GB 17.86% 91.82%     2.49GB 17.86%  github.com/jamclap/jamscript/script.(*parser).push (inline)
+    0.33GB  2.34% 94.16%     0.33GB  2.34%  github.com/jamclap/jamscript/script.(*treeBuilder).toTree
+    0.30GB  2.18% 96.34%     0.30GB  2.18%  github.com/jamclap/jamscript/script.(*treeBuilder).commit (inline)
+    0.27GB  1.95% 98.29%     0.27GB  1.95%  github.com/jamclap/jamscript/script.(*treeBuilder).pushWork (inline)
+    0.10GB  0.71% 99.00%     0.33GB  2.34%  github.com/jamclap/jamscript/script.(*treeBuilder).normToken
+    0.05GB  0.35% 99.35%     0.20GB  1.44%  github.com/jamclap/jamscript/script.(*treeBuilder).normFun
+    0.02GB  0.14% 99.50%     0.27GB  1.93%  github.com/jamclap/jamscript/script.(*treeBuilder).commitBlock (inline)
