@@ -7,38 +7,53 @@ import (
 	"github.com/jamclap/jamscript/script"
 )
 
-func lex(source string) {
-	script.Lex(source)
+func BenchmarkLexHi(b *testing.B) {
+	lex(hi, b)
 }
 
-func BenchmarkLex(b *testing.B) {
+func BenchmarkParseHi(b *testing.B) {
+	parse(hi, b)
+}
+
+func BenchmarkNormHi(b *testing.B) {
+	norm(hi, b)
+}
+
+func BenchmarkLexExplore(b *testing.B) {
+	lex(explore, b)
+}
+
+func BenchmarkParseExplore(b *testing.B) {
+	parse(explore, b)
+}
+
+func BenchmarkNormExplore(b *testing.B) {
+	norm(explore, b)
+}
+
+func lex(source string, b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		lex(hi)
+		script.Lex(source)
 	}
 }
 
-func parse(source string) {
-	tokens := script.Lex(source)
-	script.Parse(tokens)
-}
-
-func BenchmarkParse(b *testing.B) {
+func parse(source string, b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		parse(hi)
+		tokens := script.Lex(source)
+		script.Parse(tokens)
 	}
 }
 
-func norm(source string) {
-	tokens := script.Lex(source)
-	parseTree := script.Parse(tokens)
-	script.Norm(parseTree)
-}
-
-func BenchmarkNorm(b *testing.B) {
+func norm(source string, b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		norm(hi)
+		tokens := script.Lex(source)
+		parseTree := script.Parse(tokens)
+		script.Norm(parseTree)
 	}
 }
+
+//go:embed examples/explore.jam
+var explore string
 
 //go:embed examples/hi.jam
 var hi string

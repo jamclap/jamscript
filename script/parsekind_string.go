@@ -9,20 +9,21 @@ func _() {
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
 	_ = x[ParseNone-0]
-	_ = x[ParseBlock-1]
-	_ = x[ParseCall-2]
-	_ = x[ParseFun-3]
-	_ = x[ParseJunk-4]
-	_ = x[ParseModify-5]
-	_ = x[ParseParam-6]
-	_ = x[ParseParams-7]
-	_ = x[ParseString-8]
-	_ = x[ParseToken-9]
+	_ = x[ParseArgs-1]
+	_ = x[ParseBlock-2]
+	_ = x[ParseCall-3]
+	_ = x[ParseFun-4]
+	_ = x[ParseJunk-5]
+	_ = x[ParseModify-6]
+	_ = x[ParseParam-7]
+	_ = x[ParseParams-8]
+	_ = x[ParseString-9]
+	_ = x[ParseToken-10]
 }
 
-const _ParseKind_name = "ParseNoneParseBlockParseCallParseFunParseJunkParseModifyParseParamParseParamsParseStringParseToken"
+const _ParseKind_name = "ParseNoneParseArgsParseBlockParseCallParseFunParseJunkParseModifyParseParamParseParamsParseStringParseToken"
 
-var _ParseKind_index = [...]uint8{0, 9, 19, 28, 36, 45, 56, 66, 77, 88, 98}
+var _ParseKind_index = [...]uint8{0, 9, 18, 28, 37, 45, 54, 65, 75, 86, 97, 107}
 
 func (i ParseKind) String() string {
 	idx := int(i) - 0

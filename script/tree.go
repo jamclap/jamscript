@@ -27,6 +27,12 @@ type Block struct {
 	Kids  []Node
 }
 
+type Call struct {
+	Index  int
+	Callee Node
+	Args   []Node
+}
+
 type Decl struct {
 	Name  unique.Handle[string]
 	Flags NodeFlags
@@ -38,6 +44,11 @@ type Fun struct {
 	Params []Node // Var, but TODO Can't say Var unless we force contiguous
 	Ret    Node
 	Kids   []Node
+}
+
+type TokenNode struct {
+	Index int
+	Token
 }
 
 type Var struct {
@@ -62,11 +73,12 @@ const (
 	NodeNone NodeKind = iota
 	NodeArgs
 	NodeBlock
-	NodeFun
 	NodeCall
+	NodeFun
 	NodeString
-	NodeVar
+	NodeToken
 	NodeType
+	NodeVar
 )
 
 //go:generate stringer -type=NodeKind
@@ -87,32 +99,44 @@ func (t *Tree) Print() {
 
 type treePrinting struct {
 	TreePrinter
-	needsGap bool
 }
 
 func (p *treePrinting) printAt(indent int, node Node) {
-	atRoot := node == p.Tree.Root
-	PrintIndent(indent)
 	switch n := node.(type) {
 	case nil:
-		println("nil")
+		print("nil")
 	case *Block:
 		nextIndent := indent
+		atRoot := node == p.Tree.Root
 		if !atRoot {
 			println("then")
 			nextIndent += 2
 		}
 		for i, kid := range n.Kids {
-			p.needsGap = atRoot && i > 0
+			if atRoot && i > 0 {
+				println()
+			}
+			PrintIndent(nextIndent)
 			p.printAt(nextIndent, kid)
+			println()
 		}
 		if !atRoot {
 			PrintIndent(indent)
-			println("end")
+			print("end")
 		}
+	case *Call:
+		p.printAt(indent, n.Callee)
+		print("(")
+		for i, a := range n.Args {
+			if i > 0 {
+				print(", ")
+			}
+			p.printAt(indent, a)
+		}
+		print(")")
 	case *Fun:
-		if p.needsGap {
-			println()
+		if n.Flags&NodeFlagPub > 0 {
+			print("pub ")
 		}
 		print("fun")
 		if n.Name.Value() != "" {
@@ -129,14 +153,18 @@ func (p *treePrinting) printAt(indent int, node Node) {
 		}
 		print(")")
 		println()
-		p.needsGap = false
+		nextIndent := indent + 2
 		for _, kid := range n.Kids {
-			p.printAt(indent+2, kid)
+			PrintIndent(nextIndent)
+			p.printAt(nextIndent, kid)
+			println()
 		}
 		PrintIndent(indent)
-		println("end")
+		print("end")
+	case *TokenNode:
+		print(n.Text.Value())
 	case *Var:
-		println("var")
+		print("var")
 	}
 }
 
@@ -144,7 +172,9 @@ type treeBuilder struct {
 	nodes    []inNode   // TODO convert to array of interface later?
 	infos    []NodeInfo // Same length as nodes.
 	blocks   []inBlock
+	calls    []inCall
 	funs     []inFun
+	tokens   []Token
 	vars     []inVar // TODO Also workVars for contiguous params?
 	work     []inNode
 	workInfo []NodeInfo // Same length as work.
@@ -158,6 +188,11 @@ type inNode struct {
 
 type inBlock struct {
 	kids Range[inNode]
+}
+
+type inCall struct {
+	callee Idx[inNode]
+	args   Range[inNode]
 }
 
 type inFun struct {
@@ -188,12 +223,16 @@ func (b *treeBuilder) toTree() (t Tree) {
 	// log.Printf("nodes: %+v\n", b.nodes)
 	// log.Printf("infos: %+v\n", b.infos)
 	// log.Printf("blocks: %+v\n", b.blocks)
+	// log.Printf("calls: %+v\n", b.calls)
 	// log.Printf("funs: %+v\n", b.funs)
+	// log.Printf("tokens: %+v\n", b.tokens)
 	// log.Printf("vars: %+v\n", b.vars)
 	nodes := make([]Node, len(b.nodes))
 	sources := make([]Source, len(b.nodes))
-	blocks := make([]Block, len(b.funs))
+	blocks := make([]Block, len(b.blocks))
+	calls := make([]Call, len(b.calls))
 	funs := make([]Fun, len(b.funs))
+	tokens := make([]TokenNode, len(b.tokens))
 	vars := make([]Var, len(b.vars))
 	for i, node := range b.nodes {
 		switch node.kind {
@@ -201,10 +240,18 @@ func (b *treeBuilder) toTree() (t Tree) {
 			b := &blocks[node.index]
 			b.Index = i
 			nodes[i] = b
+		case NodeCall:
+			c := &calls[node.index]
+			c.Index = i
+			nodes[i] = c
 		case NodeFun:
 			f := &funs[node.index]
 			f.Index = i
 			nodes[i] = f
+		case NodeToken:
+			tok := &tokens[node.index]
+			tok.Index = i
+			nodes[i] = tok
 		case NodeVar:
 			v := &vars[node.index]
 			v.Index = i
@@ -217,6 +264,12 @@ func (b *treeBuilder) toTree() (t Tree) {
 			Kids: Slice(b.kids, nodes),
 		}
 	}
+	for i, c := range b.calls {
+		calls[i] = Call{
+			Callee: nodes[c.callee],
+			Args:   Slice(c.args, nodes),
+		}
+	}
 	for i, f := range b.funs {
 		funs[i] = Fun{
 			Decl:   f.Decl,
@@ -224,11 +277,23 @@ func (b *treeBuilder) toTree() (t Tree) {
 			Kids:   Slice(f.kids, nodes),
 		}
 	}
+	for i, tok := range b.tokens {
+		tokens[i] = TokenNode{
+			Token: tok,
+		}
+	}
 	for i, v := range b.vars {
 		vars[i] = Var{
 			Decl: v.Decl,
 		}
 	}
+	// log.Printf("copy done\n")
+	// log.Printf("nodes: %+v\n", nodes)
+	// log.Printf("blocks: %+v\n", blocks)
+	// log.Printf("calls: %+v\n", calls)
+	// log.Printf("funs: %+v\n", funs)
+	// log.Printf("tokens: %+v\n", tokens)
+	// log.Printf("vars: %+v\n", vars)
 	t.Root = nodes[len(nodes)-1]
 	return
 }
@@ -263,12 +328,6 @@ func (b *treeBuilder) popWork() {
 func (b *treeBuilder) popWorkBlock() inBlock {
 	b.popWork()
 	return pop(&b.blocks)
-}
-
-func (b *treeBuilder) pushNode(node inNode) {
-	// TODO Update source during work.
-	b.nodes = append(b.nodes, node)
-	b.infos = append(b.infos, NodeInfo{Source: b.source})
 }
 
 func (b *treeBuilder) pushWork(node inNode) {

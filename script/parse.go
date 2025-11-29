@@ -45,6 +45,7 @@ type ParseKind int
 
 const (
 	ParseNone ParseKind = iota
+	ParseArgs
 	ParseBlock
 	ParseCall
 	ParseFun
@@ -69,6 +70,10 @@ func (n ParseNode) ExpectToken(start int, kind TokenKind) int {
 }
 
 func (n ParseNode) Next(start int) (int, ParseNode) {
+	return n.NextEx(start, false)
+}
+
+func (n ParseNode) NextEx(start int, keepVSpace bool) (int, ParseNode) {
 	if n.Kind != ParseToken {
 		for i := start; i < len(n.Kids); i++ {
 			kid := n.Kids[i]
@@ -76,6 +81,10 @@ func (n ParseNode) Next(start int) (int, ParseNode) {
 			case ParseToken:
 				switch kid.Token.Kind {
 				case TokenHSpace:
+				case TokenVSpace:
+					if keepVSpace {
+						return i + 1, kid
+					}
 				default:
 					return i + 1, kid
 				}
@@ -182,7 +191,7 @@ Params:
 			p.parseExpr()
 		}
 	}
-	p.commit(ParseParams, start)
+	p.commit(ParseArgs, start)
 }
 
 func (p *parser) parseAtom() {

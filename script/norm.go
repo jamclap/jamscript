@@ -2,7 +2,6 @@ package script
 
 import (
 	"fmt"
-	"log"
 	"unique"
 )
 
@@ -18,12 +17,14 @@ func Norm(p ParseNode) Tree {
 
 func (*treeBuilder) expectNone(part ParseNode) {
 	if part.Kind != ParseNone {
-		log.Printf("Unexpected: %v\n", part)
+		// log.Printf("Unexpected: %v\n", part)
 	}
 }
 
 func (b *treeBuilder) normNode(p ParseNode) {
 	switch p.Kind {
+	case ParseArgs:
+		b.normArgs(p)
 	case ParseBlock:
 		b.normBlock(p)
 	case ParseCall:
@@ -49,6 +50,36 @@ func (b *treeBuilder) normNode(p ParseNode) {
 	}
 }
 
+func (b *treeBuilder) normArgs(p ParseNode) {
+	start := len(b.work)
+	next := p.ExpectToken(0, TokenRoundOpen)
+	part := ParseNode{}
+Args:
+	for {
+		next, part = p.Next(next)
+		switch part.Kind {
+		case ParseToken:
+			switch part.Token.Kind {
+			case TokenComma:
+				// TODO Error on repeated.
+				continue Args
+			case TokenRoundClose:
+				break Args
+			default:
+			}
+		case ParseNone:
+			break Args
+		}
+		b.normNode(part)
+	}
+	if part.Token.Kind != TokenRoundClose {
+		// log.Printf("Unexpected: %v\n", part)
+	}
+	_, part = p.Next(next)
+	b.expectNone(part)
+	b.commitBlock(start)
+}
+
 func (b *treeBuilder) normBlock(p ParseNode) {
 	start := len(b.work)
 	for _, kid := range p.Kids {
@@ -58,7 +89,22 @@ func (b *treeBuilder) normBlock(p ParseNode) {
 }
 
 func (b *treeBuilder) normCall(p ParseNode) {
-	// panic("unimplemented")
+	start := len(b.work)
+	call := inCall{}
+	// log.Printf("call\n")
+	next, part := p.Next(0)
+	b.normNode(part)
+	next, part = p.Next(next)
+	if part.Kind == ParseArgs {
+		b.normArgs(part)
+		call.args = b.popWorkBlock().kids
+		_, part = p.Next(next)
+	}
+	b.expectNone(part)
+	// We're about to push the callee as the next committed node.
+	call.callee = Idx[inNode](len(b.nodes))
+	b.commit(inNode{kind: NodeCall, index: len(b.calls)}, start)
+	b.calls = append(b.calls, call)
 }
 
 func (b *treeBuilder) normFun(p ParseNode) {
@@ -176,7 +222,7 @@ Params:
 		}
 	}
 	if part.Token.Kind != TokenRoundClose {
-		log.Printf("Unexpected: %v\n", part)
+		// log.Printf("Unexpected: %v\n", part)
 	}
 	_, part = p.Next(next)
 	b.expectNone(part)
@@ -188,5 +234,11 @@ func (b *treeBuilder) normString(p ParseNode) {
 }
 
 func (b *treeBuilder) normToken(p ParseNode) {
-	// panic("unimplemented")
+	switch p.Token.Kind {
+	case TokenId: // TODO numeric tokens or such like
+	default:
+		return
+	}
+	b.pushWork(inNode{kind: NodeToken, index: len(b.tokens)})
+	b.tokens = append(b.tokens, p.Token)
 }
