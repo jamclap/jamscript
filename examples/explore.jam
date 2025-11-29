@@ -54,6 +54,7 @@ pub fun Something&.blah(a, b)
 	else 4
 	end
 	var a = things.map(fun(x) then x + 1)
+	var a = things.map(for x then x + 1) # except for as while?
 end
 
 end class # optional

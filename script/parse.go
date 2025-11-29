@@ -124,7 +124,7 @@ type parser struct {
 }
 
 func (p *parser) parse() {
-	p.parseBlock()
+	p.parseBlockTop()
 	// Push the root itself.
 	p.commit(ParseBlock, 0)
 }
@@ -215,6 +215,19 @@ Block:
 		case TokenEnd:
 			p.pushToken(t)
 			break Block
+		default:
+			p.parseStatement()
+		}
+	}
+	p.commit(ParseBlock, start)
+}
+
+func (p *parser) parseBlockTop() {
+	start := len(p.work)
+	for p.has() {
+		switch t := p.peek(); t.Kind {
+		case TokenVSpace:
+			p.pushToken(t)
 		default:
 			p.parseStatement()
 		}
