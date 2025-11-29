@@ -162,10 +162,42 @@ func (p *treePrinting) printAt(indent int, node Node) {
 		PrintIndent(indent)
 		print("end")
 	case *TokenNode:
-		print(n.Text.Value())
+		switch n.Kind {
+		case TokenStringText:
+			PrintEscapedString(n.Text.Value())
+		default:
+			print(n.Text.Value())
+		}
 	case *Var:
 		print("var")
 	}
+}
+
+func PrintEscapedString(s string) {
+	print("\"")
+	for _, r := range s {
+		switch r {
+		case '"', '\\':
+			print("\\")
+			fmt.Printf("%c", r)
+		case '\n':
+			print("\\n")
+		case '\r':
+			print("\\r")
+		case '\t':
+			print("\\t")
+		default:
+			switch {
+			case r < 0x20 || r > 0x7e:
+				print("\\u(")
+				fmt.Printf("%x", r)
+				print(')')
+			default:
+				fmt.Printf("%c", r)
+			}
+		}
+	}
+	print("\"")
 }
 
 type treeBuilder struct {

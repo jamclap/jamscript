@@ -2,6 +2,7 @@ package script
 
 import (
 	"fmt"
+	"strings"
 	"unique"
 )
 
@@ -230,7 +231,44 @@ Params:
 }
 
 func (b *treeBuilder) normString(p ParseNode) {
-	// panic("unimplemented")
+	builder := strings.Builder{}
+	next := p.ExpectToken(0, TokenStringOpen)
+	part := ParseNode{}
+Parts:
+	for {
+		next, part = p.Next(next)
+		switch part.Token.Kind {
+		case TokenStringText:
+			builder.WriteString(part.Token.Text.Value())
+		case TokenStringEscape:
+			// TODO Multi-rune escapes.
+			switch r := RuneAt(part.Token.Text.Value(), 1); r {
+			case '"', '\\':
+				builder.WriteRune(r)
+			case 'n':
+				builder.WriteRune('\n')
+			case 'r':
+				builder.WriteRune('\r')
+			case 't':
+				builder.WriteRune('\t')
+			}
+		case TokenStringClose, TokenNone:
+			break Parts
+		}
+	}
+	text := Token{Kind: TokenStringText, Text: unique.Make(builder.String())}
+	b.pushWork(inNode{kind: NodeToken, index: len(b.tokens)})
+	b.tokens = append(b.tokens, text)
+}
+
+func RuneAt(s string, i int) rune {
+	for _, r := range s {
+		if i == 0 {
+			return r
+		}
+		i--
+	}
+	return -1
 }
 
 func (b *treeBuilder) normToken(p ParseNode) {
