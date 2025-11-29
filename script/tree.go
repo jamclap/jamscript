@@ -139,7 +139,7 @@ func (p *treePrinting) printAt(indent int, node Node) {
 			print("pub ")
 		}
 		print("fun")
-		if n.Name.Value() != "" {
+		if n.Name != unique.Make("") {
 			fmt.Printf(" %s", n.Name.Value())
 		}
 		// TODO If wide, print params on separate lines?
@@ -164,9 +164,9 @@ func (p *treePrinting) printAt(indent int, node Node) {
 	case *TokenNode:
 		switch n.Kind {
 		case TokenStringText:
-			PrintEscapedString(n.Text.Value())
+			PrintEscapedString(n.Text)
 		default:
-			print(n.Text.Value())
+			print(n.Text)
 		}
 	case *Var:
 		print("var")

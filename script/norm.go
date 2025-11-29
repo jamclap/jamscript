@@ -113,7 +113,7 @@ func (b *treeBuilder) normFun(p ParseNode) {
 	next := p.ExpectToken(0, TokenFun)
 	next, part := p.Next(next)
 	if part.Token.Kind == TokenId {
-		fun.Name = part.Token.Text
+		fun.Name = unique.Make(part.Token.Text)
 		next, part = p.Next(next)
 	} else {
 		fun.Name = unique.Make("")
@@ -132,7 +132,7 @@ func (b *treeBuilder) normFun(p ParseNode) {
 	b.expectNone(part)
 	b.pushWork(inNode{kind: NodeFun, index: len(b.funs)})
 	b.funs = append(b.funs, fun)
-	// log.Printf("fun %s %v\n", fun.Name.Value(), fun.params)
+	// log.Printf("fun %s %v\n", fun.Name, fun.params)
 }
 
 func (b *treeBuilder) normJunk(p ParseNode) {
@@ -180,7 +180,7 @@ func (b *treeBuilder) normParam(p ParseNode) {
 	v := inVar{}
 	next, part := p.Next(0)
 	if part.Token.Kind == TokenId {
-		v.Name = part.Token.Text
+		v.Name = unique.Make(part.Token.Text)
 		next, part = p.Next(next)
 	} else {
 		v.Name = unique.Make("")
@@ -239,10 +239,10 @@ Parts:
 		next, part = p.Next(next)
 		switch part.Token.Kind {
 		case TokenStringText:
-			builder.WriteString(part.Token.Text.Value())
+			builder.WriteString(part.Token.Text)
 		case TokenStringEscape:
 			// TODO Multi-rune escapes.
-			switch r := RuneAt(part.Token.Text.Value(), 1); r {
+			switch r := RuneAt(part.Token.Text, 1); r {
 			case '"', '\\':
 				builder.WriteRune(r)
 			case 'n':
@@ -256,7 +256,7 @@ Parts:
 			break Parts
 		}
 	}
-	text := Token{Kind: TokenStringText, Text: unique.Make(builder.String())}
+	text := Token{Kind: TokenStringText, Text: builder.String()}
 	b.pushWork(inNode{kind: NodeToken, index: len(b.tokens)})
 	b.tokens = append(b.tokens, text)
 }
