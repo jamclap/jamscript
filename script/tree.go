@@ -110,7 +110,7 @@ func (p *treePrinting) printAt(indent int, node Node) {
 		atRoot := node == p.Tree.Root
 		if !atRoot {
 			println("then")
-			nextIndent += 2
+			nextIndent++
 		}
 		for i, kid := range n.Kids {
 			if atRoot && i > 0 {
@@ -153,7 +153,7 @@ func (p *treePrinting) printAt(indent int, node Node) {
 		}
 		print(")")
 		println()
-		nextIndent := indent + 2
+		nextIndent := indent + 1
 		for _, kid := range n.Kids {
 			PrintIndent(nextIndent)
 			p.printAt(nextIndent, kid)

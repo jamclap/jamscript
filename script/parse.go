@@ -115,7 +115,7 @@ func (n ParseNode) printAt(indent int) {
 
 func PrintIndent(indent int) {
 	for range indent {
-		print("  ")
+		print("    ")
 	}
 }
 
