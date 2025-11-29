@@ -34,7 +34,7 @@ type Call struct {
 }
 
 type Decl struct {
-	Name  unique.Handle[string]
+	Name  string
 	Flags NodeFlags
 }
 
@@ -139,8 +139,8 @@ func (p *treePrinting) printAt(indent int, node Node) {
 			print("pub ")
 		}
 		print("fun")
-		if n.Name != unique.Make("") {
-			fmt.Printf(" %s", n.Name.Value())
+		if n.Name != "" {
+			fmt.Printf(" %s", n.Name)
 		}
 		// TODO If wide, print params on separate lines?
 		print("(")
@@ -149,7 +149,7 @@ func (p *treePrinting) printAt(indent int, node Node) {
 				print(", ")
 			}
 			v := vnode.(*Var)
-			print(v.Name.Value())
+			print(v.Name)
 		}
 		print(")")
 		println()

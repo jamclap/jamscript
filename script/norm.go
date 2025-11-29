@@ -3,7 +3,6 @@ package script
 import (
 	"fmt"
 	"strings"
-	"unique"
 )
 
 func Norm(p ParseNode) Tree {
@@ -113,10 +112,10 @@ func (b *treeBuilder) normFun(p ParseNode) {
 	next := p.ExpectToken(0, TokenFun)
 	next, part := p.Next(next)
 	if part.Token.Kind == TokenId {
-		fun.Name = unique.Make(part.Token.Text)
+		fun.Name = part.Token.Text
 		next, part = p.Next(next)
 	} else {
-		fun.Name = unique.Make("")
+		fun.Name = ""
 	}
 	if part.Kind == ParseParams {
 		b.normParams(part)
@@ -180,10 +179,10 @@ func (b *treeBuilder) normParam(p ParseNode) {
 	v := inVar{}
 	next, part := p.Next(0)
 	if part.Token.Kind == TokenId {
-		v.Name = unique.Make(part.Token.Text)
+		v.Name = part.Token.Text
 		next, part = p.Next(next)
 	} else {
-		v.Name = unique.Make("")
+		v.Name = ""
 	}
 	if part.Kind != ParseNone {
 		// TODO Fix logic, and make it easy to do things like this.
