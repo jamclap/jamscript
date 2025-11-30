@@ -2,15 +2,16 @@ package script
 
 import (
 	"fmt"
-	"unique"
 )
 
 type Tree struct {
-	Root    Node
+	Root    Node // always the last node?
 	Sources []Source
 }
 
-type Node interface{}
+type Node interface {
+	// Idx() int
+}
 
 type Idx[T any] int
 
@@ -23,8 +24,12 @@ const (
 )
 
 type Block struct {
-	Index int
-	Kids  []Node
+	NodeInfo
+	Kids []Node
+}
+
+func (b *Block) Idx() int {
+	return b.Index
 }
 
 type Call struct {
@@ -33,37 +38,51 @@ type Call struct {
 	Args   []Node
 }
 
-type Decl struct {
+type Def struct {
 	Name  string
 	Flags NodeFlags
 }
 
 type Fun struct {
-	Index int
-	Decl
-	Params []Node // Var, but TODO Can't say Var unless we force contiguous
+	NodeInfo
+	Def
+	Scope
+	Params []Node // always *Var
 	Ret    Node
 	Kids   []Node
 }
 
+type Ref struct {
+	NodeInfo
+	Node Node
+}
+
+type Scope struct {
+	DatSize int
+	PtrSize int
+}
+
 type TokenNode struct {
-	Index int
+	NodeInfo
 	Token
 }
 
 type Var struct {
-	Index int
-	Decl
-	TypeInfo Node
+	NodeInfo
+	Def
+	DatOffset int
+	PtrOffset int
+	Type      Node
 }
 
 // Side info for each node that's not expected to be used often.
 type NodeInfo struct {
+	Index  int
 	Source Source
 }
 
 type Source struct {
-	Path  unique.Handle[string]
+	Path  *string // TODO Module pointer
 	Range Range[rune]
 }
 
@@ -228,14 +247,14 @@ type inCall struct {
 }
 
 type inFun struct {
-	Decl
+	Def
 	params Range[inNode]
 	// ret Idx[inNode]
 	kids Range[inNode]
 }
 
 type inVar struct {
-	Decl
+	Def
 	// typeInfo Idx[inNode]
 }
 
@@ -304,7 +323,7 @@ func (b *treeBuilder) toTree() (t Tree) {
 	}
 	for i, f := range b.funs {
 		funs[i] = Fun{
-			Decl:   f.Decl,
+			Def:    f.Def,
 			Params: Slice(f.params, nodes),
 			Kids:   Slice(f.kids, nodes),
 		}
@@ -316,7 +335,7 @@ func (b *treeBuilder) toTree() (t Tree) {
 	}
 	for i, v := range b.vars {
 		vars[i] = Var{
-			Decl: v.Decl,
+			Def: v.Def,
 		}
 	}
 	// log.Printf("copy done\n")
