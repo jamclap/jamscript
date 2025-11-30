@@ -22,4 +22,5 @@ func main() {
 	parseTree.Print()
 	tree := script.Norm(parseTree)
 	tree.Print()
+	script.Resolve(tree.Root)
 }

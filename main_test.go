@@ -19,6 +19,10 @@ func BenchmarkNormHi(b *testing.B) {
 	norm(hi, b)
 }
 
+func BenchmarkResolveHi(b *testing.B) {
+	resolve(hi, b)
+}
+
 func BenchmarkLexExplore(b *testing.B) {
 	lex(explore, b)
 }
@@ -29,6 +33,10 @@ func BenchmarkParseExplore(b *testing.B) {
 
 func BenchmarkNormExplore(b *testing.B) {
 	norm(explore, b)
+}
+
+func BenchmarkResolveExplore(b *testing.B) {
+	resolve(explore, b)
 }
 
 func lex(source string, b *testing.B) {
@@ -49,6 +57,15 @@ func norm(source string, b *testing.B) {
 		tokens := script.Lex(source)
 		parseTree := script.Parse(tokens)
 		script.Norm(parseTree)
+	}
+}
+
+func resolve(source string, b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		tokens := script.Lex(source)
+		parseTree := script.Parse(tokens)
+		tree := script.Norm(parseTree)
+		script.Resolve(tree.Root)
 	}
 }
 

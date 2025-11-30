@@ -1,40 +1,42 @@
-2025-11-30T13:44:30Z tom@hierba:~/projects/jamscript
+2025-11-30T15:06:06Z tom@hierba:~/projects/jamscript
 $ go test -benchmem -bench . -memprofile mem.prof
 goos: linux
 goarch: amd64
 pkg: github.com/jamclap/jamscript
 cpu: Intel(R) Core(TM) i3-10100 CPU @ 3.60GHz
-BenchmarkLexHi-8          	  803708	      2380 ns/op	    1640 B/op	       6 allocs/op
-BenchmarkParseHi-8        	  244758	      4401 ns/op	   14360 B/op	      19 allocs/op
-BenchmarkNormHi-8         	  159474	      7193 ns/op	   18408 B/op	      57 allocs/op
-BenchmarkLexExplore-8     	   50743	     32811 ns/op	   32104 B/op	      10 allocs/op
-BenchmarkParseExplore-8   	   21116	     57662 ns/op	  210953 B/op	      31 allocs/op
-BenchmarkNormExplore-8    	   15488	     77994 ns/op	  253649 B/op	      85 allocs/op
+BenchmarkLexHi-8            	  798144	      1428 ns/op	    1640 B/op	       6 allocs/op
+BenchmarkParseHi-8          	  261720	      4498 ns/op	   14360 B/op	      19 allocs/op
+BenchmarkNormHi-8           	  161383	      7347 ns/op	   18408 B/op	      57 allocs/op
+BenchmarkResolveHi-8        	  152322	      7698 ns/op	   18776 B/op	      60 allocs/op
+BenchmarkLexExplore-8       	   51702	     23198 ns/op	   32104 B/op	      10 allocs/op
+BenchmarkParseExplore-8     	   20976	     56959 ns/op	  210953 B/op	      31 allocs/op
+BenchmarkNormExplore-8      	   15794	     75795 ns/op	  253649 B/op	      85 allocs/op
+BenchmarkResolveExplore-8   	   15204	     78158 ns/op	  254081 B/op	      89 allocs/op
 PASS
-ok  	github.com/jamclap/jamscript	10.577s
-2025-11-30T13:47:08Z tom@hierba:~/projects/jamscript
+ok  	github.com/jamclap/jamscript	12.065s
+2025-11-30T15:06:55Z tom@hierba:~/projects/jamscript
 $ echo top | go tool pprof -alloc_space jamscript.test mem.prof 
 File: jamscript.test
-Build ID: 20de4c72296d780f565f3d6e6780fd1de9d5d0fd
+Build ID: 0ca42fd1791381015f6dd87b26861b02b4734edb
 Type: alloc_space
-Time: 2025-11-30 06:47:08 MST
+Time: 2025-11-30 08:06:55 MST
 Entering interactive mode (type "help" for commands, "o" for options)
-(pprof) Showing nodes accounting for 22.94GB, 99.64% of 23.03GB total
-Dropped 38 nodes (cum <= 0.12GB)
-Showing top 10 nodes out of 45
+(pprof) Showing nodes accounting for 30.85GB, 99.31% of 31.07GB total
+Dropped 37 nodes (cum <= 0.16GB)
+Showing top 10 nodes out of 50
       flat  flat%   sum%        cum   cum%
-    7.82GB 33.96% 33.96%     7.82GB 33.96%  github.com/jamclap/jamscript/script.(*parser).commit (inline)
-    5.58GB 24.25% 58.21%     5.58GB 24.25%  github.com/jamclap/jamscript/script.(*lexer).push
-    4.20GB 18.23% 76.44%     4.20GB 18.23%  github.com/jamclap/jamscript/script.(*parser).push (inline)
-    3.72GB 16.18% 92.62%    15.74GB 68.37%  github.com/jamclap/jamscript/script.Parse
-    0.53GB  2.31% 94.93%     0.53GB  2.31%  github.com/jamclap/jamscript/script.(*treeBuilder).toTree
-    0.42GB  1.83% 96.76%     0.42GB  1.83%  github.com/jamclap/jamscript/script.(*treeBuilder).commit (inline)
-    0.39GB  1.69% 98.46%     0.39GB  1.69%  github.com/jamclap/jamscript/script.(*treeBuilder).pushWork (inline)
-    0.19GB  0.83% 99.28%     0.51GB  2.22%  github.com/jamclap/jamscript/script.(*treeBuilder).normToken
-    0.06GB  0.27% 99.55%     0.28GB  1.22%  github.com/jamclap/jamscript/script.(*treeBuilder).normFun
-    0.02GB 0.085% 99.64%     0.37GB  1.59%  github.com/jamclap/jamscript/script.(*treeBuilder).commitBlock (inline)
-(pprof) 2025-11-30T13:48:20Z tom@hierba:~/projects/jamscript
+   10.26GB 33.02% 33.02%    10.26GB 33.02%  github.com/jamclap/jamscript/script.(*parser).commit (inline)
+    6.52GB 20.99% 54.02%     6.52GB 20.99%  github.com/jamclap/jamscript/script.(*lexer).push
+    5.97GB 19.22% 73.23%     5.97GB 19.22%  github.com/jamclap/jamscript/script.(*parser).push (inline)
+    4.98GB 16.04% 89.27%    21.21GB 68.28%  github.com/jamclap/jamscript/script.Parse
+    1.03GB  3.31% 92.58%     1.03GB  3.31%  github.com/jamclap/jamscript/script.(*treeBuilder).toTree
+    0.86GB  2.76% 95.34%     0.86GB  2.76%  github.com/jamclap/jamscript/script.(*treeBuilder).commit (inline)
+    0.71GB  2.30% 97.63%     0.71GB  2.30%  github.com/jamclap/jamscript/script.(*treeBuilder).pushWork (inline)
+    0.35GB  1.14% 98.77%     0.95GB  3.04%  github.com/jamclap/jamscript/script.(*treeBuilder).normToken
+    0.12GB  0.38% 99.15%     0.57GB  1.83%  github.com/jamclap/jamscript/script.(*treeBuilder).normFun
+    0.05GB  0.16% 99.31%     0.16GB  0.52%  github.com/jamclap/jamscript/script.(*treeBuilder).normString
+(pprof) 2025-11-30T15:07:22Z tom@hierba:~/projects/jamscript
 $ ls -l target/
-total 2516
--rwxrwxr-x 1 tom tom 2574720 Nov 30 06:44 jamscript
-2025-11-30T13:48:22Z tom@hierba:~/projects/jamscript
+total 2524
+-rwxrwxr-x 1 tom tom 2581460 Nov 30 08:05 jamscript
+2025-11-30T15:07:27Z tom@hierba:~/projects/jamscript
