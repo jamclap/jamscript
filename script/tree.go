@@ -161,6 +161,7 @@ func (p *treePrinting) printAt(indent int, node Node) {
 		if n.Name != "" {
 			fmt.Printf(" %s", n.Name)
 		}
+		fmt.Printf("@%d", n.Index)
 		// TODO If wide, print params on separate lines?
 		print("(")
 		for i, vnode := range n.Params {
@@ -169,6 +170,7 @@ func (p *treePrinting) printAt(indent int, node Node) {
 			}
 			v := vnode.(*Var)
 			print(v.Name)
+			fmt.Printf("@%d", v.Index)
 		}
 		print(")")
 		println()
@@ -187,8 +189,18 @@ func (p *treePrinting) printAt(indent int, node Node) {
 		default:
 			print(n.Text)
 		}
+	case *Ref:
+		switch d := n.Node.(type) {
+		case *Fun:
+			print(d.Name)
+			fmt.Printf("@%d", d.Index)
+		case *Var:
+			print(d.Name)
+			fmt.Printf("@%d", d.Index)
+		}
 	case *Var:
 		print("var")
+		fmt.Printf("@%d", n.Index)
 	}
 }
 
@@ -288,25 +300,15 @@ func (b *treeBuilder) toTree() (t Tree) {
 	for i, node := range b.nodes {
 		switch node.kind {
 		case NodeBlock:
-			b := &blocks[node.index]
-			b.Index = i
-			nodes[i] = b
+			nodes[i] = &blocks[node.index]
 		case NodeCall:
-			c := &calls[node.index]
-			c.Index = i
-			nodes[i] = c
+			nodes[i] = &calls[node.index]
 		case NodeFun:
-			f := &funs[node.index]
-			f.Index = i
-			nodes[i] = f
+			nodes[i] = &funs[node.index]
 		case NodeToken:
-			tok := &tokens[node.index]
-			tok.Index = i
-			nodes[i] = tok
+			nodes[i] = &tokens[node.index]
 		case NodeVar:
-			v := &vars[node.index]
-			v.Index = i
-			nodes[i] = v
+			nodes[i] = &vars[node.index]
 		}
 		sources[i] = b.infos[i].Source
 	}
@@ -337,6 +339,26 @@ func (b *treeBuilder) toTree() (t Tree) {
 		vars[i] = Var{
 			Def: v.Def,
 		}
+	}
+	for i, node := range b.nodes {
+		switch node.kind {
+		case NodeBlock:
+			b := &blocks[node.index]
+			b.Index = i
+		case NodeCall:
+			c := &calls[node.index]
+			c.Index = i
+		case NodeFun:
+			f := &funs[node.index]
+			f.Index = i
+		case NodeToken:
+			tok := &tokens[node.index]
+			tok.Index = i
+		case NodeVar:
+			v := &vars[node.index]
+			v.Index = i
+		}
+		sources[i] = b.infos[i].Source
 	}
 	// log.Printf("copy done\n")
 	// log.Printf("nodes: %+v\n", nodes)

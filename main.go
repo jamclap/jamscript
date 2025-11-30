@@ -19,8 +19,9 @@ func main() {
 	source := string(b)
 	tokens := script.Lex(source)
 	parseTree := script.Parse(tokens)
-	parseTree.Print()
+	// parseTree.Print()
 	tree := script.Norm(parseTree)
-	tree.Print()
+	// tree.Print()
 	script.Resolve(tree.Root)
+	tree.Print()
 }

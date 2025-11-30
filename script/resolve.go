@@ -39,30 +39,30 @@ Tops:
 		}
 	}
 	// Now recurse.
-	for _, kid := range root.Kids {
+	for i, kid := range root.Kids {
 		switch k := kid.(type) {
 		case *Fun:
 			r.resolveFun(k, true)
 		case *Var:
 			r.resolveVar(k, true)
 		default:
-			r.resolveNode(kid)
+			r.resolveNode(&root.Kids[i])
 		}
 	}
 }
 
 func (r *resolver) resolveBlock(b *Block) {
 	start := len(r.scope)
-	for _, kid := range b.Kids {
-		r.resolveNode(kid)
+	for i := range b.Kids {
+		r.resolveNode(&b.Kids[i])
 	}
 	r.scope = r.scope[:start]
 }
 
 func (r *resolver) resolveCall(c *Call) {
-	r.resolveNode(c.Callee)
-	for _, a := range c.Args {
-		r.resolveNode(a)
+	r.resolveNode(&c.Callee)
+	for i := range c.Args {
+		r.resolveNode(&c.Args[i])
 	}
 }
 
@@ -72,16 +72,16 @@ func (r *resolver) resolveFun(f *Fun, atTop bool) {
 	}
 	start := len(r.scope)
 	for _, p := range f.Params {
-		r.resolveNode(p)
+		r.resolveNode(&p)
 	}
-	for _, kid := range f.Kids {
-		r.resolveNode(kid)
+	for i := range f.Kids {
+		r.resolveNode(&f.Kids[i])
 	}
 	r.scope = r.scope[:start]
 }
 
-func (r *resolver) resolveNode(node Node) {
-	switch n := node.(type) {
+func (r *resolver) resolveNode(node *Node) {
+	switch n := (*node).(type) {
 	case *Block:
 		r.resolveBlock(n)
 	case *Call:
@@ -89,24 +89,26 @@ func (r *resolver) resolveNode(node Node) {
 	case *Fun:
 		r.resolveFun(n, false)
 	case *TokenNode:
-		r.resolveToken(n)
+		r.resolveToken(node, n)
 	case *Var:
 		r.resolveVar(n, false)
 	}
 }
 
-func (r *resolver) resolveToken(t *TokenNode) {
+func (r *resolver) resolveToken(node *Node, t *TokenNode) {
 	if t.Kind != TokenId {
 		return
 	}
 	for i := len(r.scope) - 1; i >= 0; i-- {
 		pair := r.scope[i]
 		if pair.First == t.Text {
+			*node = &Ref{NodeInfo: NodeInfo{Index: t.Index}, Node: pair.Second}
 			// fmt.Printf("found in scope: %v %v\n", t.Text, pair.Second)
 			return
 		}
 	}
 	if top, ok := r.tops[t.Text]; ok {
+		*node = &Ref{NodeInfo: NodeInfo{Index: t.Index}, Node: top}
 		// fmt.Printf("found at top: %v %+v\n", t.Text, top)
 		_ = top
 	}
