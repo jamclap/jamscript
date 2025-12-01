@@ -4,7 +4,8 @@ import (
 	"fmt"
 )
 
-type Tree struct {
+type Module struct {
+	Core    map[string]Node
 	Root    Node // always the last node?
 	Sources []Source
 }
@@ -103,7 +104,7 @@ const (
 //go:generate stringer -type=NodeKind
 
 type TreePrinter struct {
-	Tree *Tree
+	Tree *Module
 	TreePrinterOptions
 }
 
@@ -111,7 +112,7 @@ type TreePrinterOptions struct {
 	// TODO Options
 }
 
-func (t *Tree) Print() {
+func (t *Module) Print() {
 	p := treePrinting{TreePrinter: TreePrinter{Tree: t}}
 	p.printAt(0, t.Root)
 }
@@ -281,7 +282,7 @@ func newTreeBuilder() treeBuilder {
 	}
 }
 
-func (b *treeBuilder) toTree() (t Tree) {
+func (b *treeBuilder) toTree() *Module {
 	// log.Printf("norm done")
 	// log.Printf("nodes: %+v\n", b.nodes)
 	// log.Printf("infos: %+v\n", b.infos)
@@ -367,8 +368,10 @@ func (b *treeBuilder) toTree() (t Tree) {
 	// log.Printf("funs: %+v\n", funs)
 	// log.Printf("tokens: %+v\n", tokens)
 	// log.Printf("vars: %+v\n", vars)
-	t.Root = nodes[len(nodes)-1]
-	return
+	return &Module{
+		Core: map[string]Node{},
+		Root: nodes[len(nodes)-1],
+	}
 }
 
 func (b *treeBuilder) commit(parent inNode, start int) {

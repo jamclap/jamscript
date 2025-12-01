@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-func Norm(p ParseNode) Tree {
+func Norm(p ParseNode) *Module {
 	// TODO Convert internal repr to arrays then nodes?
 	b := newTreeBuilder()
 	b.normNode(p)

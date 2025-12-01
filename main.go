@@ -20,8 +20,13 @@ func main() {
 	tokens := script.Lex(source)
 	parseTree := script.Parse(tokens)
 	// parseTree.Print()
-	tree := script.Norm(parseTree)
+	module := script.Norm(parseTree)
+	module.Core["log"] = &script.Fun{
+		Def: script.Def{
+			Name: "log",
+		},
+	}
 	// tree.Print()
-	script.Resolve(tree.Root)
-	tree.Print()
+	script.Resolve(module)
+	module.Print()
 }
