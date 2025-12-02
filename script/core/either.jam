@@ -1,0 +1,34 @@
+union Bool = Either[Void, Void]
+
+union Either[YesValue, NoValue]
+    Yes[YesValue]
+    No[YesValue, NoValue]
+end
+
+const false = null[Void]
+
+union Maybe[Value] = Either[Value, Void]
+
+struct No[YesValue, NoValue]
+    value NoValue
+end
+
+fun no[YesValue, NoValue](value NoValue)
+    return No[YesValue]{value}
+end
+
+const null[Value] = no[Value](void)
+
+const true = yes(void)
+
+struct Yes[Value]
+    value Value
+end
+
+fun yes[Value](value)
+    return Yes{value}
+end
+
+struct Void end
+
+const void Void = void

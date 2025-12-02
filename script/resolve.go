@@ -101,23 +101,24 @@ func (r *resolver) resolveToken(node *Node, t *TokenNode) {
 	if t.Kind != TokenId {
 		return
 	}
+	info := t.NodeInfo
 	for i := len(r.scope) - 1; i >= 0; i-- {
 		pair := r.scope[i]
 		if pair.First == t.Text {
 			// TODO Store side table of resolutions for later bulkier allocation?
-			*node = &Ref{NodeInfo: NodeInfo{Index: t.Index}, Node: pair.Second}
+			*node = &Ref{NodeInfo: info, Node: pair.Second}
 			return
 		}
 	}
 	if top, ok := r.tops[t.Text]; ok {
 		// TODO Store side table of resolutions for later bulkier allocation?
-		*node = &Ref{NodeInfo: NodeInfo{Index: t.Index}, Node: top}
+		*node = &Ref{NodeInfo: info, Node: top}
 		_ = top
 	}
 	if top, ok := r.core[t.Text]; ok {
 		// TODO Store side table of resolutions for later bulkier allocation?
 		// TODO Force top-level defs for imports? Focus on qualified access too?
-		*node = &Ref{Node: top}
+		*node = &Ref{NodeInfo: info, Node: top}
 		_ = top
 	}
 }

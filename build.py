@@ -6,7 +6,7 @@ import time as t
 
 
 target_dir = "target"
-target_file = p.join(target_dir, "jamscript")
+target_file = p.join(target_dir, "jams")
 
 
 def build():
@@ -14,7 +14,9 @@ def build():
     mkdir(target_dir)
     failed = False
     try:
-        run(["go", "build", "-o", target_file, "main.go"])
+        extra = []
+        extra = ["-ldflags=-s -w"]
+        run(["go", "build", *extra, "-o", target_file, "main.go"])
     except:
         failed = True
         pass
