@@ -65,7 +65,7 @@ func resolve(source string, b *testing.B) {
 		tokens := script.Lex(source)
 		parseTree := script.Parse(tokens)
 		tree := script.Norm(parseTree)
-		script.Resolve(tree.Root)
+		script.Resolve(tree)
 	}
 }
 
