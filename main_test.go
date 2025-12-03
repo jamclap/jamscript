@@ -19,12 +19,8 @@ func BenchmarkNormHi(b *testing.B) {
 	norm(hi, b)
 }
 
-func BenchmarkResolveHi(b *testing.B) {
-	resolve(hi, b)
-}
-
-func BenchmarkTypifyHi(b *testing.B) {
-	typify(hi, b)
+func BenchmarkAnalyzeHi(b *testing.B) {
+	analyze(hi, b)
 }
 
 func BenchmarkLexExplore(b *testing.B) {
@@ -39,12 +35,8 @@ func BenchmarkNormExplore(b *testing.B) {
 	norm(explore, b)
 }
 
-func BenchmarkResolveExplore(b *testing.B) {
-	resolve(explore, b)
-}
-
-func BenchmarkTypifyExplore(b *testing.B) {
-	typify(explore, b)
+func BenchmarkAnalyzeExplore(b *testing.B) {
+	analyze(explore, b)
 }
 
 func lex(source string, b *testing.B) {
@@ -68,22 +60,12 @@ func norm(source string, b *testing.B) {
 	}
 }
 
-func resolve(source string, b *testing.B) {
+func analyze(source string, b *testing.B) {
 	for b.Loop() {
 		tokens := script.Lex(source)
 		parseTree := script.Parse(tokens)
 		tree := script.Norm(parseTree)
-		script.Resolve(tree)
-	}
-}
-
-func typify(source string, b *testing.B) {
-	for b.Loop() {
-		tokens := script.Lex(source)
-		parseTree := script.Parse(tokens)
-		tree := script.Norm(parseTree)
-		script.Resolve(tree)
-		script.Typify(tree)
+		script.Analyze(tree)
 	}
 }
 

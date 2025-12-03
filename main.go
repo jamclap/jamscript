@@ -16,18 +16,6 @@ func main() {
 	if err != nil {
 		log.Panic(err)
 	}
-	source := string(b)
-	tokens := script.Lex(source)
-	parseTree := script.Parse(tokens)
-	// parseTree.Print()
-	module := script.Norm(parseTree)
-	module.Core["log"] = &script.Fun{
-		Def: script.Def{
-			Name: "log",
-		},
-	}
-	// tree.Print()
-	script.Resolve(module)
-	script.Typify(module)
+	module := script.Process(string(b))
 	module.Print()
 }
