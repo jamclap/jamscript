@@ -48,8 +48,9 @@ type Fun struct {
 	NodeInfo
 	Def
 	Scope
+	Type    FunType
 	Params  []Node // always *Var
-	RetType Node
+	RetSpec Node
 	Kids    []Node
 }
 
@@ -71,8 +72,10 @@ type TokenNode struct {
 type Var struct {
 	NodeInfo
 	Def
-	Offset int
-	Type   Node
+	Type     Type
+	TypeSpec Node
+	Value    Node
+	Offset   int
 }
 
 // Side info for each node that's not expected to be used often.
@@ -173,6 +176,7 @@ func (p *treePrinting) printAt(indent int, node Node) {
 			fmt.Printf("@%d", v.Index)
 		}
 		print(")")
+		p.printType(n.Type.RetType)
 		println()
 		nextIndent := indent + 1
 		for _, kid := range n.Kids {
@@ -201,6 +205,16 @@ func (p *treePrinting) printAt(indent int, node Node) {
 	case *Var:
 		print("var")
 		fmt.Printf("@%d", n.Index)
+		p.printType(n.Type)
+	}
+}
+
+func (p *treePrinting) printType(t Type) {
+	switch t {
+	case nil, TypeNone:
+		print(" Unknown")
+	default:
+		print(" SomeType")
 	}
 }
 

@@ -28,5 +28,6 @@ func main() {
 	}
 	// tree.Print()
 	script.Resolve(module)
+	script.Typify(module)
 	module.Print()
 }
