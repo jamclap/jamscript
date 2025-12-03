@@ -46,14 +46,14 @@ func lex(source string, b *testing.B) {
 }
 
 func parse(source string, b *testing.B) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		tokens := script.Lex(source)
 		script.Parse(tokens)
 	}
 }
 
 func norm(source string, b *testing.B) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		tokens := script.Lex(source)
 		parseTree := script.Parse(tokens)
 		script.Norm(parseTree)
@@ -61,7 +61,7 @@ func norm(source string, b *testing.B) {
 }
 
 func resolve(source string, b *testing.B) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		tokens := script.Lex(source)
 		parseTree := script.Parse(tokens)
 		tree := script.Norm(parseTree)

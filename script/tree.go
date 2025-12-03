@@ -48,9 +48,9 @@ type Fun struct {
 	NodeInfo
 	Def
 	Scope
-	Params []Node // always *Var
-	Ret    Node
-	Kids   []Node
+	Params  []Node // always *Var
+	RetType Node
+	Kids    []Node
 }
 
 type Ref struct {
@@ -59,8 +59,8 @@ type Ref struct {
 }
 
 type Scope struct {
-	DatSize int
-	PtrSize int
+	// TODO for []any, which should only store pointers to slices
+	Size int
 }
 
 type TokenNode struct {
@@ -71,9 +71,8 @@ type TokenNode struct {
 type Var struct {
 	NodeInfo
 	Def
-	DatOffset int
-	PtrOffset int
-	Type      Node
+	Offset int
+	Type   Node
 }
 
 // Side info for each node that's not expected to be used often.

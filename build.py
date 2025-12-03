@@ -16,7 +16,7 @@ def build():
     try:
         extra = []
         extra = ["-ldflags=-s -w"]
-        run(["go", "build", *extra, "-o", target_file, "main.go"])
+        run(["go", "build", *extra, "-o", target_file, "."])
     except:
         failed = True
         pass
