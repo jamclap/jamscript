@@ -62,10 +62,11 @@ func norm(source string, b *testing.B) {
 
 func analyze(source string, b *testing.B) {
 	for b.Loop() {
+		e := script.NewEngine()
 		tokens := script.Lex(source)
 		parseTree := script.Parse(tokens)
 		tree := script.Norm(parseTree)
-		script.Analyze(tree)
+		e.Analyze(tree)
 	}
 }
 

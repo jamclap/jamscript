@@ -8,6 +8,7 @@ type Module struct {
 	Core    map[string]Node
 	Root    Node // always the last node?
 	Sources []Source
+	Tops    map[string]Node
 }
 
 type Node interface {

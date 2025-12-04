@@ -1,10 +1,11 @@
 package script
 
-func Resolve(m *Module) {
-	r := resolver{
-		core: m.Core,
-		tops: map[string]Node{},
+func (r *resolver) Resolve(m *Module) {
+	if m.Tops == nil {
+		m.Tops = make(map[string]Node)
 	}
+	r.tops = m.Tops
+	r.scope = r.scope[:0]
 	r.resolveRoot(m.Root.(*Block))
 }
 
@@ -20,7 +21,12 @@ type resolver struct {
 }
 
 func (r *resolver) resolveRoot(root *Block) {
-	// Define tops first.
+	// Clear current tops while retaining capacity.
+	// TODO Presume they don't change?
+	for k := range r.tops {
+		delete(r.tops, k)
+	}
+	// Extract tops.
 	// TODO Also struct fields.
 Tops:
 	for _, kid := range root.Kids {

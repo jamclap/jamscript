@@ -16,6 +16,7 @@ func main() {
 	if err != nil {
 		log.Panic(err)
 	}
-	module := script.Process(string(b))
+	e := script.NewEngine()
+	module := e.Process(string(b))
 	module.Print()
 }

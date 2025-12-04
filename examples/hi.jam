@@ -1,4 +1,4 @@
-pub fun init(hub)
+pub fun main(sys)
     greet()
 end
 
