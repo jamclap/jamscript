@@ -7,66 +7,33 @@ import (
 	"github.com/jamclap/jamscript/script"
 )
 
-func BenchmarkLexHi(b *testing.B) {
-	lex(hi, b)
+func BenchmarkProcessHi(b *testing.B) {
+	process(hi, b)
 }
 
-func BenchmarkParseHi(b *testing.B) {
-	parse(hi, b)
+func BenchmarkResetHi(b *testing.B) {
+	processReset(hi, b)
 }
 
-func BenchmarkNormHi(b *testing.B) {
-	norm(hi, b)
+func BenchmarkProcessExplore(b *testing.B) {
+	process(explore, b)
 }
 
-func BenchmarkAnalyzeHi(b *testing.B) {
-	analyze(hi, b)
+func BenchmarkResetExplore(b *testing.B) {
+	processReset(explore, b)
 }
 
-func BenchmarkLexExplore(b *testing.B) {
-	lex(explore, b)
-}
-
-func BenchmarkParseExplore(b *testing.B) {
-	parse(explore, b)
-}
-
-func BenchmarkNormExplore(b *testing.B) {
-	norm(explore, b)
-}
-
-func BenchmarkAnalyzeExplore(b *testing.B) {
-	analyze(explore, b)
-}
-
-func lex(source string, b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		script.Lex(source)
-	}
-}
-
-func parse(source string, b *testing.B) {
+func process(source string, b *testing.B) {
+	e := script.NewEngine()
 	for b.Loop() {
-		tokens := script.Lex(source)
-		script.Parse(tokens)
+		e.Process(source)
 	}
 }
 
-func norm(source string, b *testing.B) {
-	for b.Loop() {
-		tokens := script.Lex(source)
-		parseTree := script.Parse(tokens)
-		script.Norm(parseTree)
-	}
-}
-
-func analyze(source string, b *testing.B) {
+func processReset(source string, b *testing.B) {
 	for b.Loop() {
 		e := script.NewEngine()
-		tokens := script.Lex(source)
-		parseTree := script.Parse(tokens)
-		tree := script.Norm(parseTree)
-		e.Analyze(tree)
+		e.Process(source)
 	}
 }
 
