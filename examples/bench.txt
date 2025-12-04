@@ -1,42 +1,47 @@
-2025-12-03T13:13:43Z tom@hierba:~/projects/jamscript
-$ go test -benchmem -bench . -memprofile mem.prof
-goos: linux
+PS C:\Users\tjpal\projects\jamscript> go test -benchmem -bench . -memprofile mem.prof
+goos: windows
 goarch: amd64
 pkg: github.com/jamclap/jamscript
-cpu: Intel(R) Core(TM) i3-10100 CPU @ 3.60GHz
-BenchmarkLexHi-8            	  794672	      1448 ns/op	    1640 B/op	       6 allocs/op
-BenchmarkParseHi-8          	  261396	      4538 ns/op	   14360 B/op	      19 allocs/op
-BenchmarkNormHi-8           	  155068	      7537 ns/op	   18648 B/op	      59 allocs/op
-BenchmarkAnalyzeHi-8        	  118797	     10077 ns/op	   21432 B/op	     101 allocs/op
-BenchmarkLexExplore-8       	   51046	     23532 ns/op	   32104 B/op	      10 allocs/op
-BenchmarkParseExplore-8     	   19498	     65848 ns/op	  210952 B/op	      31 allocs/op
-BenchmarkNormExplore-8      	   15182	     78419 ns/op	  253889 B/op	      87 allocs/op
-BenchmarkAnalyzeExplore-8   	   12250	     98440 ns/op	  257473 B/op	     144 allocs/op
+cpu: Intel(R) Core(TM) 7 150U
+BenchmarkLexHi-12                 598275              1967 ns/op            1640 B/op          6 allocs/op
+BenchmarkParseHi-12               148251              8039 ns/op           14360 B/op         19 allocs/op
+BenchmarkNormHi-12                 93518             12531 ns/op           18648 B/op         59 allocs/op
+BenchmarkAnalyzeHi-12              72219             16290 ns/op           21432 B/op        101 allocs/op
+BenchmarkLexExplore-12             39612             30195 ns/op           32104 B/op         10 allocs/op
+BenchmarkParseExplore-12           11407            103591 ns/op          210952 B/op         31 allocs/op
+BenchmarkNormExplore-12            10000            130001 ns/op          253888 B/op         87 allocs/op
+BenchmarkAnalyzeExplore-12          7190            154735 ns/op          257472 B/op        144 allocs/op
 PASS
-ok  	github.com/jamclap/jamscript	9.845s
-2025-12-03T14:54:41Z tom@hierba:~/projects/jamscript
-$ echo top | go tool pprof -alloc_space jamscript.test mem.prof 
-File: jamscript.test
-Build ID: 99f1c9df5920008876a7043b6814a6da37a39b74
+ok      github.com/jamclap/jamscript    13.244s
+PS C:\Users\tjpal\projects\jamscript> echo top | go tool pprof -alloc_space jamscript.test mem.prof
+jamscript.test: GetFileAttributesEx jamscript.test: The system cannot find the file specified.
+Fetched 1 source profiles out of 2
+File: jamscript.test.exe
+Build ID: C:\Users\tjpal\AppData\Local\Temp\go-build3644108301\b001\jamscript.test.exe2025-12-04 04:13:26.7707576 -0700 MST
 Type: alloc_space
-Time: 2025-12-03 07:54:41 MST
+Time: 2025-12-04 04:13:46 MST
 Entering interactive mode (type "help" for commands, "o" for options)
-(pprof) Showing nodes accounting for 21.52GB, 98.54% of 21.84GB total
-Dropped 41 nodes (cum <= 0.11GB)
-Showing top 10 nodes out of 54
+(pprof) Showing nodes accounting for 14.38GB, 98.65% of 14.57GB total
+Dropped 45 nodes (cum <= 0.07GB)
+Showing top 10 nodes out of 56
       flat  flat%   sum%        cum   cum%
-    7.11GB 32.57% 32.57%     7.11GB 32.57%  github.com/jamclap/jamscript/script.(*parser).commit (inline)
-    5.25GB 24.03% 56.60%     5.25GB 24.03%  github.com/jamclap/jamscript/script.(*lexer).push
-    3.64GB 16.69% 73.28%     3.64GB 16.69%  github.com/jamclap/jamscript/script.(*parser).push (inline)
-    3.29GB 15.07% 88.35%    14.05GB 64.32%  github.com/jamclap/jamscript/script.Parse
-    0.75GB  3.45% 91.80%     0.75GB  3.45%  github.com/jamclap/jamscript/script.(*treeBuilder).toTree
-    0.58GB  2.65% 94.45%     0.58GB  2.65%  github.com/jamclap/jamscript/script.(*treeBuilder).commit (inline)
-    0.41GB  1.89% 96.35%     0.41GB  1.89%  github.com/jamclap/jamscript/script.(*treeBuilder).pushWork (inline)
-    0.19GB  0.89% 97.23%     0.52GB  2.38%  github.com/jamclap/jamscript/script.(*treeBuilder).normToken
-    0.18GB  0.84% 98.07%     0.21GB  0.97%  github.com/jamclap/jamscript/script.(*resolver).resolveRoot
-    0.10GB  0.47% 98.54%     0.44GB  2.01%  github.com/jamclap/jamscript/script.(*treeBuilder).normFun
-(pprof) 2025-12-03T14:55:34Z tom@hierba:~/projects/jamscript
-$ ls -l target/
-total 1708
--rwxrwxr-x 1 tom tom 1745080 Dec  3 06:11 jams
-2025-12-03T14:55:55Z tom@hierba:~/projects/jamscript
+    4.48GB 30.77% 30.77%     4.48GB 30.77%  github.com/jamclap/jamscript/script.(*lexer).push
+    4.28GB 29.35% 60.12%     4.28GB 29.35%  github.com/jamclap/jamscript/script.(*parser).commit (inline)
+    2.23GB 15.28% 75.39%     2.23GB 15.28%  github.com/jamclap/jamscript/script.(*parser).push (inline)
+    2.02GB 13.88% 89.28%     8.53GB 58.51%  github.com/jamclap/jamscript/script.Parse
+    0.46GB  3.15% 92.43%     0.46GB  3.15%  github.com/jamclap/jamscript/script.(*treeBuilder).toTree
+    0.36GB  2.44% 94.86%     0.36GB  2.44%  github.com/jamclap/jamscript/script.(*treeBuilder).commit (inline)
+    0.25GB  1.73% 96.60%     0.25GB  1.73%  github.com/jamclap/jamscript/script.(*treeBuilder).pushWork (inline)
+    0.12GB  0.85% 97.45%     0.33GB  2.24%  github.com/jamclap/jamscript/script.(*treeBuilder).normToken
+    0.11GB  0.74% 98.19%     0.13GB  0.86%  github.com/jamclap/jamscript/script.(*resolver).resolveRoot
+    0.07GB  0.46% 98.65%     0.27GB  1.89%  github.com/jamclap/jamscript/script.(*treeBuilder).normFun
+(pprof)
+PS C:\Users\tjpal\projects\jamscript> ls .\target\
+
+    Directory: C:\Users\tjpal\projects\jamscript\target
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a---           12/4/2025  4:12 AM        1855488 jams.exe
+
+PS C:\Users\tjpal\projects\jamscript>
