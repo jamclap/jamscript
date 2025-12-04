@@ -296,6 +296,22 @@ func newTreeBuilder() treeBuilder {
 	}
 }
 
+func (b *treeBuilder) reset() {
+	// Start at 1.
+	// TODO Any changes needed here?
+	b.nodes = b.nodes[:1]
+	b.infos = b.infos[:1]
+	b.blocks = b.blocks[:1]
+	b.funs = b.funs[:1]
+	b.vars = b.vars[:1]
+	// Start at 0.
+	b.calls = b.calls[:0]
+	b.tokens = b.tokens[:0]
+	b.work = b.work[:0]
+	b.workInfo = b.workInfo[:0]
+	b.source = Source{}
+}
+
 func (b *treeBuilder) toTree() *Module {
 	// log.Printf("norm done")
 	// log.Printf("nodes: %+v\n", b.nodes)

@@ -6,10 +6,10 @@ import (
 	"unicode/utf8"
 )
 
-func Lex(source string) []Token {
-	l := lexer{
-		source: source,
-	}
+func (l *lexer) Lex(source string) []Token {
+	l.index = 0
+	l.source = source
+	l.tokens = l.tokens[:0]
 	l.lex()
 	return l.tokens
 }

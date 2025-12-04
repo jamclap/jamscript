@@ -5,9 +5,8 @@ import (
 	"strings"
 )
 
-func Norm(p ParseNode) *Module {
-	// TODO Convert internal repr to arrays then nodes?
-	b := newTreeBuilder()
+func (b *treeBuilder) Norm(p ParseNode) *Module {
+	b.reset()
 	b.normNode(p)
 	// Fake block to commit the top.
 	b.commitBlock(0)

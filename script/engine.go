@@ -2,18 +2,23 @@ package script
 
 type Engine struct {
 	// Types map[Type]Type // TODO or use unique.Make(type) instead?
-	resolver resolver
+	lexer       lexer
+	parser      parser
+	resolver    resolver
+	treeBuilder treeBuilder
 }
 
 func NewEngine() *Engine {
-	return &Engine{}
+	return &Engine{
+		treeBuilder: newTreeBuilder(),
+	}
 }
 
 func (e *Engine) Process(source string) *Module {
-	tokens := Lex(source)
-	parseTree := Parse(tokens)
+	tokens := e.lexer.Lex(source)
+	parseTree := e.parser.Parse(tokens)
 	// parseTree.Print()
-	module := Norm(parseTree)
+	module := e.treeBuilder.Norm(parseTree)
 	module.Core["log"] = &Fun{
 		Def: Def{
 			Name: "log",
