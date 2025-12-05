@@ -1,5 +1,10 @@
 package script
 
+import (
+	"log"
+	"reflect"
+)
+
 type Engine struct {
 	// Types map[Type]Type // TODO or use unique.Make(type) instead?
 	lexer       lexer
@@ -24,6 +29,7 @@ func (e *Engine) Process(source string) *Module {
 		Def: Def{
 			Name: "log",
 		},
+		Kids: []Node{reflect.ValueOf(log.Println)},
 	}
 	// tree.Print()
 	e.Analyze(module)
