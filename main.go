@@ -19,4 +19,5 @@ func main() {
 	e := script.NewEngine()
 	module := e.Process(string(b))
 	module.Print()
+	e.Run(module)
 }

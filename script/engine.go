@@ -5,6 +5,7 @@ type Engine struct {
 	lexer       lexer
 	parser      parser
 	resolver    resolver
+	runner      runner
 	treeBuilder treeBuilder
 }
 
@@ -27,6 +28,10 @@ func (e *Engine) Process(source string) *Module {
 	// tree.Print()
 	e.Analyze(module)
 	return module
+}
+
+func (e *Engine) Run(m *Module) {
+	e.runner.Run(m)
 }
 
 func (e *Engine) Analyze(module *Module) {
