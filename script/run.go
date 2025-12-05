@@ -25,39 +25,56 @@ func (r *runner) Run(m *Module) {
 }
 
 type runner struct {
-	module *Module
-	stack  []any
+	module      *Module
+	reflectArgs []reflect.Value
+	stack       []any
 }
 
 func (r *runner) runNode(node Node) any {
 	fmt.Printf("run node: %+v %T\n", node, node)
 	switch n := node.(type) {
 	case *Call:
-		r.runCall(n)
+		return r.runCall(n)
 	case *Ref:
-		println("ref")
+		return r.runRef(n)
 	}
 	return nil
 }
 
-func (r *runner) runCall(c *Call) {
-	print("call")
+func (r *runner) runCall(c *Call) any {
+	println("call")
 	callee := r.runNode(c.Callee)
 	f, ok := callee.(*Fun)
 	if !ok {
 		println("callee not fun")
-		return
+		return nil
 	}
 	r.runFun(f, len(r.stack))
+	return nil
 }
 
-func (r *runner) runFun(f *Fun, argsStart int) {
+func (r *runner) runFun(f *Fun, argsStart int) any {
 	if len(f.Kids) == 1 {
 		if v, ok := f.Kids[0].(reflect.Value); ok {
-			fmt.Printf("reflect: %+v\n", v)
+			switch v.Kind() {
+			case reflect.Func:
+				fmt.Printf("reflect fun: %+v\n", v)
+				// TODO Provide args. Push on stack?
+				// v.Call()
+			}
+			return nil
 		}
 	}
 	for _, k := range f.Kids {
 		r.runNode(k)
 	}
+	return nil
+}
+
+func (r *runner) runRef(ref *Ref) any {
+	switch d := ref.Node.(type) {
+	case *Fun:
+		return d
+	}
+	return nil
 }
