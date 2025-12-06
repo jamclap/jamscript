@@ -67,20 +67,20 @@ func (r *runner) runFun(f *Fun, argsStart int) any {
 		v := f.Kids[0]
 		t := reflect.TypeOf(v)
 		if t.Kind() == reflect.Func {
-			// switch f2 := v.(type) {
-			// case func(string):
-			// 	if argCount != 1 {
-			// 		log.Printf("bad args\n")
-			// 		return nil
-			// 	}
-			// 	s, ok := r.stack[len(r.stack)-1].(string)
-			// 	if !ok {
-			// 		log.Printf("bad args\n")
-			// 		return nil
-			// 	}
-			// 	f2(s)
-			// 	return nil
-			// }
+			switch f2 := v.(type) {
+			case func(string):
+				if argCount != 1 {
+					log.Printf("bad args\n")
+					return nil
+				}
+				s, ok := r.stack[len(r.stack)-1].(string)
+				if !ok {
+					log.Printf("bad args\n")
+					return nil
+				}
+				f2(s)
+				return nil
+			}
 			if argCount != reflect.TypeOf(v).NumIn() {
 				log.Printf("reflect fun: %+v %d\n", v, reflect.TypeOf(v).NumIn())
 				return nil
