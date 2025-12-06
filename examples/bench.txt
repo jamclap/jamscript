@@ -3,70 +3,77 @@ goos: windows
 goarch: amd64
 pkg: github.com/jamclap/jamscript
 cpu: Intel(R) Core(TM) 7 150U
-BenchmarkProcessHi-12             100122             10467 ns/op           14792 B/op         56 allocs/op
-BenchmarkProcessExplore-12         12109             99751 ns/op          129037 B/op         61 allocs/op
+BenchmarkProcessHi-12              68956             16475 ns/op           18945 B/op         91 allocs/op
+BenchmarkRunHi-12                 834915              1290 ns/op             128 B/op          8 allocs/op
+BenchmarkProcessExplore-12         10000            106859 ns/op          129648 B/op         67 allocs/op
+BenchmarkRunExplore-12          63574137                17.18 ns/op            0 B/op          0 allocs/op
 PASS
-ok      github.com/jamclap/jamscript    3.163s
+ok      github.com/jamclap/jamscript    5.329s
 PS C:\Users\tjpal\projects\jamscript> echo top | go tool pprof -alloc_space jamscript.test mem.prof
 jamscript.test: GetFileAttributesEx jamscript.test: The system cannot find the file specified.
 Fetched 1 source profiles out of 2
 File: jamscript.test.exe
-Build ID: C:\Users\tjpal\projects\jamscript\jamscript.test.exe2025-12-04 08:19:13.7967398 -0700 MST
+Build ID: C:\Users\tjpal\projects\jamscript\jamscript.test.exe2025-12-06 05:51:50.7468636 -0700 MST
 Type: alloc_space
-Time: 2025-12-04 08:20:30 MST
+Time: 2025-12-06 05:52:39 MST
 Entering interactive mode (type "help" for commands, "o" for options)
-(pprof) Showing nodes accounting for 2944.56MB, 99.82% of 2949.93MB total
-Dropped 41 nodes (cum <= 14.75MB)
-Showing top 10 nodes out of 35
+(pprof) Showing nodes accounting for 2594.07MB, 99.09% of 2617.80MB total
+Dropped 54 nodes (cum <= 13.09MB)
+Showing top 10 nodes out of 42
       flat  flat%   sum%        cum   cum%
- 1620.34MB 54.93% 54.93%  1620.34MB 54.93%  github.com/jamclap/jamscript/script.(*parser).commit (inline)
-  793.50MB 26.90% 81.83%  2413.84MB 81.83%  github.com/jamclap/jamscript/script.(*parser).Parse
-  306.19MB 10.38% 92.21%   306.19MB 10.38%  github.com/jamclap/jamscript/script.(*treeBuilder).toTree
-   56.50MB  1.92% 94.12%      100MB  3.39%  github.com/jamclap/jamscript/script.(*typer).typeCall
-   50.51MB  1.71% 95.83%  2945.06MB 99.84%  github.com/jamclap/jamscript/script.(*Engine).Process
-      42MB  1.42% 97.26%       42MB  1.42%  github.com/jamclap/jamscript/script.(*typer).typeRef (inline)
-   37.01MB  1.25% 98.51%    54.51MB  1.85%  github.com/jamclap/jamscript/script.(*resolver).resolveRoot
-   17.50MB  0.59% 99.11%    17.50MB  0.59%  github.com/jamclap/jamscript/script.(*resolver).resolveToken
-      17MB  0.58% 99.68%    99.50MB  3.37%  github.com/jamclap/jamscript/script.(*typer).typeFun
-       4MB  0.14% 99.82%    58.51MB  1.98%  github.com/jamclap/jamscript/script.(*resolver).Resolve
+ 1263.09MB 48.25% 48.25%  1263.09MB 48.25%  github.com/jamclap/jamscript/script.(*parser).commit (inline)
+  729.93MB 27.88% 76.13%  1993.02MB 76.13%  github.com/jamclap/jamscript/script.(*parser).Parse
+  261.53MB  9.99% 86.12%   261.53MB  9.99%  github.com/jamclap/jamscript/script.(*treeBuilder).toTree
+   98.50MB  3.76% 89.89%   174.01MB  6.65%  github.com/jamclap/jamscript/script.(*typer).typeCall
+      75MB  2.87% 92.75%       75MB  2.87%  github.com/jamclap/jamscript/script.(*typer).typeRef (inline)
+   55.50MB  2.12% 94.87%    55.50MB  2.12%  github.com/jamclap/jamscript/script.doLog
+   54.50MB  2.08% 96.95%    54.50MB  2.08%  github.com/jamclap/jamscript/script.(*runner).runToken
+   28.51MB  1.09% 98.04%  2502.57MB 95.60%  github.com/jamclap/jamscript/script.(*Engine).Process
+      18MB  0.69% 98.73%    31.01MB  1.18%  github.com/jamclap/jamscript/script.(*resolver).resolveRoot
+    9.50MB  0.36% 99.09%   169.01MB  6.46%  github.com/jamclap/jamscript/script.(*typer).typeFun
 (pprof)
 PS C:\Users\tjpal\projects\jamscript> echo "top 20 -cum -focus github.com/jamclap/jamscript" | go tool pprof jamscript.test cpu.prof
 jamscript.test: GetFileAttributesEx jamscript.test: The system cannot find the file specified.
 Fetched 1 source profiles out of 2
 File: jamscript.test.exe
-Build ID: C:\Users\tjpal\projects\jamscript\jamscript.test.exe2025-12-04 08:19:13.7967398 -0700 MST
+Build ID: C:\Users\tjpal\projects\jamscript\jamscript.test.exe2025-12-06 05:51:50.7468636 -0700 MST
 Type: cpu
-Time: 2025-12-04 08:20:27 MST
-Duration: 2.41s, Total samples = 3s (124.41%)
+Time: 2025-12-06 05:52:35 MST
+Duration: 4.52s, Total samples = 5.07s (112.17%)
 Entering interactive mode (type "help" for commands, "o" for options)
 (pprof) Ignore expression matched no samples
 Active filters:
    focus=github.com/jamclap/jamscript
    ignore=focus
-Showing nodes accounting for 0.20s, 6.67% of 3s total
-Showing top 20 nodes out of 172
+Showing nodes accounting for 1.70s, 33.53% of 5.07s total
+Dropped 86 nodes (cum <= 0.03s)
+Showing top 20 nodes out of 142
       flat  flat%   sum%        cum   cum%
-         0     0%     0%      1.84s 61.33%  github.com/jamclap/jamscript/script.(*Engine).Process
-         0     0%     0%      1.84s 61.33%  github.com/jamclap/jamscript_test.process
-         0     0%     0%      1.84s 61.33%  testing.(*B).run1.func1
-         0     0%     0%      1.84s 61.33%  testing.(*B).runN
-         0     0%     0%      0.96s 32.00%  github.com/jamclap/jamscript_test.BenchmarkProcessExplore
-         0     0%     0%      0.88s 29.33%  github.com/jamclap/jamscript_test.BenchmarkProcessHi
-     0.11s  3.67%  3.67%      0.79s 26.33%  github.com/jamclap/jamscript/script.(*parser).Parse
-         0     0%  3.67%      0.53s 17.67%  github.com/jamclap/jamscript/script.(*parser).parse
-         0     0%  3.67%      0.52s 17.33%  github.com/jamclap/jamscript/script.(*parser).parseBlockTop
-     0.01s  0.33%  4.00%      0.49s 16.33%  github.com/jamclap/jamscript/script.(*Engine).Analyze
-     0.01s  0.33%  4.33%      0.47s 15.67%  runtime.mallocgc
-         0     0%  4.33%      0.44s 14.67%  github.com/jamclap/jamscript/script.(*parser).parseCall
-         0     0%  4.33%      0.44s 14.67%  github.com/jamclap/jamscript/script.(*parser).parseExpr (inline)
-         0     0%  4.33%      0.44s 14.67%  github.com/jamclap/jamscript/script.(*parser).parseStatement (inline)
-     0.03s  1.00%  5.33%      0.40s 13.33%  github.com/jamclap/jamscript/script.(*parser).parseAtom
-         0     0%  5.33%      0.35s 11.67%  github.com/jamclap/jamscript/script.(*resolver).Resolve
-     0.01s  0.33%  5.67%      0.35s 11.67%  github.com/jamclap/jamscript/script.(*resolver).resolveRoot
-     0.03s  1.00%  6.67%      0.33s 11.00%  github.com/jamclap/jamscript/script.(*parser).commit (inline)
-         0     0%  6.67%      0.30s 10.00%  github.com/jamclap/jamscript/script.(*lexer).Lex (inline)
-         0     0%  6.67%      0.30s 10.00%  github.com/jamclap/jamscript/script.(*lexer).lex
+         0     0%     0%      4.04s 79.68%  testing.(*B).run1.func1
+         0     0%     0%      4.04s 79.68%  testing.(*B).runN
+     0.01s   0.2%   0.2%      2.10s 41.42%  github.com/jamclap/jamscript_test.run
+     0.02s  0.39%  0.59%      2.04s 40.24%  github.com/jamclap/jamscript/script.(*Engine).Run
+     0.09s  1.78%  2.37%      2.02s 39.84%  github.com/jamclap/jamscript/script.(*runner).Run
+         0     0%  2.37%      1.94s 38.26%  github.com/jamclap/jamscript/script.(*Engine).Process
+         0     0%  2.37%      1.94s 38.26%  github.com/jamclap/jamscript_test.process
+     0.22s  4.34%  6.71%      1.15s 22.68%  runtime.mapaccess2_faststr
+         0     0%  6.71%      1.06s 20.91%  github.com/jamclap/jamscript_test.BenchmarkRunExplore
+         0     0%  6.71%      1.04s 20.51%  github.com/jamclap/jamscript_test.BenchmarkRunHi
+     0.02s  0.39%  7.10%      1.01s 19.92%  github.com/jamclap/jamscript/script.(*runner).runFun
+         0     0%  7.10%         1s 19.72%  github.com/jamclap/jamscript/script.(*runner).runCall
+         0     0%  7.10%         1s 19.72%  github.com/jamclap/jamscript/script.(*runner).runNode
+         0     0%  7.10%      0.98s 19.33%  github.com/jamclap/jamscript_test.BenchmarkProcessExplore
+         0     0%  7.10%      0.96s 18.93%  github.com/jamclap/jamscript_test.BenchmarkProcessHi
+         0     0%  7.10%      0.94s 18.54%  reflect.Value.Call
+     0.34s  6.71% 13.81%      0.94s 18.54%  reflect.Value.call
+     0.28s  5.52% 19.33%      0.87s 17.16%  internal/runtime/maps.(*Map).getWithoutKeySmallFastStr
+     0.12s  2.37% 21.70%      0.68s 13.41%  github.com/jamclap/jamscript/script.(*parser).Parse
+     0.60s 11.83% 33.53%      0.60s 11.83%  aeshashbody
 (pprof)
-PS C:\Users\tjpal\projects\jamscript> .\target\build
-Build time: 1.56 s
-Size of target\jams.exe: 1858560 B or 1.77 MiB
+PS C:\Users\tjpal\projects\jamscript> ls .\target\jams.exe
+
+    Directory: C:\Users\tjpal\projects\jamscript\target
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a---           12/6/2025  5:50 AM        1897472 jams.exe

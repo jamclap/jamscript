@@ -28,10 +28,10 @@ func (e *Engine) Process(source string) *Module {
 		Def: Def{
 			Name: "log",
 		},
-		Kids: []Node{log.Println},
+		Kids: []Node{doLog},
 	}
 	// tree.Print()
-	e.Analyze(module)
+	e.analyze(module)
 	return module
 }
 
@@ -39,7 +39,7 @@ func (e *Engine) Run(m *Module) {
 	e.runner.Run(m)
 }
 
-func (e *Engine) Analyze(module *Module) {
+func (e *Engine) analyze(module *Module) {
 	// TODO Track changes so we can know if more rounds are needed.
 	// TODO What's a good max?
 	e.resolver.core = module.Core
@@ -49,4 +49,8 @@ func (e *Engine) Analyze(module *Module) {
 		e.resolver.Resolve(module)
 		Typify(module)
 	}
+}
+
+func doLog(s string) {
+	log.Println(s)
 }
