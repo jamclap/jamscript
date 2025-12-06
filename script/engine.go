@@ -2,7 +2,6 @@ package script
 
 import (
 	"log"
-	"reflect"
 )
 
 type Engine struct {
@@ -29,7 +28,7 @@ func (e *Engine) Process(source string) *Module {
 		Def: Def{
 			Name: "log",
 		},
-		Kids: []Node{reflect.ValueOf(log.Println)},
+		Kids: []Node{log.Println},
 	}
 	// tree.Print()
 	e.Analyze(module)
