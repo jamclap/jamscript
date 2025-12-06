@@ -1,7 +1,10 @@
 pub fun main(sys)
     greet()
+    greet()
 end
 
 fun greet()
     log("I say, \"Hi!\"")
+    log("Now bye.")
+    log("")
 end

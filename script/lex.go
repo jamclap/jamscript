@@ -176,7 +176,6 @@ Id:
 
 func (l *lexer) str() {
 	start := l.index
-	l.next()
 	kind := TokenStringText
 Str:
 	for l.has() {
@@ -193,6 +192,8 @@ Str:
 		}
 		switch r {
 		case '"':
+			l.push(kind, start)
+			start = l.index
 			l.next()
 			kind = TokenStringClose
 			break Str
