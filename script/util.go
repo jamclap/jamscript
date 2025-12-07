@@ -17,10 +17,11 @@ func pop[T any](items *[]T) T {
 	return (*Stack[T])(items).Pop()
 }
 
-func (s *Stack[T]) Push(v T) {
+func (s *Stack[T]) Push(v T) *T {
 	*s = append(*s, v)
+	return last((*[]T)(s))
 }
 
-// func push[T any](items *[]T, item T) {
-// 	(*Stack[T])(items).Push(item)
-// }
+func push[T any](items *[]T, item T) *T {
+	return (*Stack[T])(items).Push(item)
+}

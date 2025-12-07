@@ -11,6 +11,7 @@ type Engine struct {
 	resolver    resolver
 	runner      runner
 	treeBuilder treeBuilder
+	typer       typer
 }
 
 func NewEngine() *Engine {
@@ -44,10 +45,9 @@ func (e *Engine) analyze(module *Module) {
 	// TODO What's a good max?
 	e.resolver.core = module.Core
 	for i := 0; i < 5; i++ {
-		// TODO If stable, this shouldn't allocate more on each iteration.
-		// TODO But it is, so fix it.
+		// If stable, this shouldn't allocate more on each iteration.
 		e.resolver.Resolve(module)
-		Typify(module)
+		e.typer.Type(module)
 	}
 }
 

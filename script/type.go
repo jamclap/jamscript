@@ -2,8 +2,9 @@ package script
 
 import "unique"
 
-func Typify(m *Module) {
-	t := typer{}
+func (t *typer) Type(m *Module) {
+	t.funTypes = t.funTypes[:0]
+	t.typeTypes = t.typeTypes[:0]
 	t.typeRoot(m.Root.(*Block))
 }
 
@@ -52,8 +53,10 @@ type TypeType struct {
 }
 
 type typer struct {
-	// TODO Stack of wanted types by labeled blocks/functions.
+	// Stack of wanted types by labeled blocks/functions.
 	// TODO Also stack of found types for the same.
+	funTypes  []FunType
+	typeTypes []TypeType
 }
 
 func (t *typer) typeRoot(b *Block) {
@@ -96,7 +99,9 @@ func (t *typer) typeBlock(b *Block, wanted Type) Type {
 }
 
 func (t *typer) typeCall(c *Call, wanted Type) Type {
-	calleeType := t.typeNode(c.Callee, &FunType{RetType: wanted})
+	wantedFunType := push(&t.funTypes, FunType{RetType: wanted})
+	defer pop(&t.funTypes)
+	calleeType := t.typeNode(c.Callee, wantedFunType)
 	var retType Type
 	funType, ok := calleeType.(*FunType)
 	if ok {
@@ -121,7 +126,9 @@ func (t *typer) typeFun(f *Fun, wanted Type) Type {
 	if wantedOk {
 		wantedRetType = wantedFunType.RetType
 	}
-	specType := t.typeNode(f.RetSpec, &TypeType{Type: wantedRetType})
+	wantedTypeType := push(&t.typeTypes, TypeType{Type: wantedRetType})
+	defer pop(&t.typeTypes)
+	specType := t.typeNode(f.RetSpec, wantedTypeType)
 	if specTypeType, ok := specType.(*TypeType); ok {
 		retType = specTypeType.Type
 	}
@@ -149,7 +156,7 @@ func (t *typer) typeRef(r *Ref, wanted Type) Type {
 	_ = wanted
 	switch n := r.Node.(type) {
 	case *Fun:
-		return n.Type
+		return &n.Type
 	case *Var:
 		return n.Type
 	}
