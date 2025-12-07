@@ -32,6 +32,7 @@ const (
 	TokenChange
 	TokenClass
 	TokenComma
+	TokenComment
 	TokenConst
 	TokenContinue
 	TokenElse
@@ -84,6 +85,8 @@ func (l *lexer) lex() {
 		default:
 			start := l.index
 			switch r {
+			case '#':
+				l.comment()
 			case '"':
 				l.next()
 				l.push(TokenStringOpen, start)
@@ -133,6 +136,19 @@ func (l *lexer) push(kind TokenKind, start int) {
 		text := l.source[start:l.index]
 		l.tokens = append(l.tokens, Token{Kind: kind, Text: text})
 	}
+}
+
+func (l *lexer) comment() {
+	start := l.index
+Comment:
+	for l.has() {
+		r := l.peek()
+		if r == '\n' {
+			break Comment
+		}
+		l.next()
+	}
+	l.push(TokenComment, start)
 }
 
 func (l *lexer) hspace() {
