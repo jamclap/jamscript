@@ -74,6 +74,8 @@ func (t *typer) typeNode(node Node, wanted Type) Type {
 		return t.typeRef(n, wanted)
 	case *TokenNode:
 		return t.typeToken(n, wanted)
+	case *Value:
+		return t.typeValue(n, wanted)
 	case *Var:
 		return t.typeVar(n, wanted)
 	}
@@ -156,9 +158,15 @@ func (t *typer) typeRef(r *Ref, wanted Type) Type {
 
 func (t *typer) typeToken(tok *TokenNode, wanted Type) Type {
 	// TODO Use this for integer literals to find when float?
+	_ = tok
 	_ = wanted
-	switch tok.Kind {
-	case TokenStringText:
+	return nil
+}
+
+func (t *typer) typeValue(value *Value, wanted Type) Type {
+	_ = wanted
+	switch value.Value.(type) {
+	case string:
 		return TypeString
 	}
 	return nil

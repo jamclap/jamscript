@@ -70,6 +70,11 @@ type TokenNode struct {
 	Token
 }
 
+type Value struct {
+	NodeInfo
+	Value any
+}
+
 type Var struct {
 	NodeInfo
 	Def
@@ -98,9 +103,9 @@ const (
 	NodeBlock
 	NodeCall
 	NodeFun
-	NodeString
 	NodeToken
 	NodeType
+	NodeValue
 	NodeVar
 )
 
@@ -253,6 +258,7 @@ type treeBuilder struct {
 	calls    []inCall
 	funs     []inFun
 	tokens   []Token
+	values   []any
 	vars     []inVar // TODO Also workVars for contiguous params?
 	work     []inNode
 	workInfo []NodeInfo // Same length as work.
@@ -310,6 +316,7 @@ func (b *treeBuilder) reset() {
 	b.work = b.work[:0]
 	b.workInfo = b.workInfo[:0]
 	b.source = Source{}
+	b.values = b.values[:0]
 }
 
 func (b *treeBuilder) toTree() *Module {
@@ -327,6 +334,7 @@ func (b *treeBuilder) toTree() *Module {
 	calls := make([]Call, len(b.calls))
 	funs := make([]Fun, len(b.funs))
 	tokens := make([]TokenNode, len(b.tokens))
+	values := make([]Value, len(b.values))
 	vars := make([]Var, len(b.vars))
 	for i, node := range b.nodes {
 		switch node.kind {
@@ -338,6 +346,8 @@ func (b *treeBuilder) toTree() *Module {
 			nodes[i] = &funs[node.index]
 		case NodeToken:
 			nodes[i] = &tokens[node.index]
+		case NodeValue:
+			nodes[i] = &values[node.index]
 		case NodeVar:
 			nodes[i] = &vars[node.index]
 		}
@@ -366,6 +376,11 @@ func (b *treeBuilder) toTree() *Module {
 			Token: tok,
 		}
 	}
+	for i, v := range b.values {
+		values[i] = Value{
+			Value: v,
+		}
+	}
 	for i, v := range b.vars {
 		vars[i] = Var{
 			Def: v.Def,
@@ -385,6 +400,9 @@ func (b *treeBuilder) toTree() *Module {
 		case NodeToken:
 			tok := &tokens[node.index]
 			tok.Index = i
+		case NodeValue:
+			v := &values[node.index]
+			v.Index = i
 		case NodeVar:
 			v := &vars[node.index]
 			v.Index = i

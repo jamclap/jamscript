@@ -254,9 +254,8 @@ Parts:
 			break Parts
 		}
 	}
-	text := Token{Kind: TokenStringText, Text: builder.String()}
-	b.pushWork(inNode{kind: NodeToken, index: len(b.tokens)})
-	b.tokens = append(b.tokens, text)
+	b.pushWork(inNode{kind: NodeValue, index: len(b.values)})
+	b.values = append(b.values, builder.String())
 }
 
 func RuneAt(s string, i int) rune {

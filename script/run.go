@@ -38,8 +38,8 @@ func (r *runner) runNode(node Node) any {
 		return r.runCall(n)
 	case *Ref:
 		return r.runRef(n)
-	case *TokenNode:
-		return r.runToken(n)
+	case *Value:
+		return r.runValue(n)
 	}
 	return nil
 }
@@ -112,12 +112,6 @@ func (r *runner) runRef(ref *Ref) any {
 	return nil
 }
 
-func (r *runner) runToken(t *TokenNode) any {
-	switch t.Kind {
-	case TokenStringText:
-		return t.Text
-	default:
-		log.Printf("t: %v\n", t)
-	}
-	return nil
+func (r *runner) runValue(value *Value) any {
+	return value.Value
 }
