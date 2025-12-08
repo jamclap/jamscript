@@ -37,16 +37,24 @@ const (
 	TokenContinue
 	TokenElse
 	TokenEnd
+	TokenEq
+	TokenEqEq
 	TokenEnum
 	TokenFor
 	TokenFrom
 	TokenFun
+	TokenGe
+	TokenGt
 	TokenHSpace
 	TokenId
 	TokenIf
 	TokenIs
 	TokenImport
+	TokenLe
+	TokenLt
 	TokenJunk
+	TokenNot
+	TokenNEq
 	TokenPlug
 	TokenPub
 	TokenReturn
@@ -91,6 +99,8 @@ func (l *lexer) lex() {
 				l.next()
 				l.push(TokenStringOpen, start)
 				l.str()
+			case '=':
+				l.eq()
 			case ',':
 				l.next()
 				l.push(TokenComma, start)
@@ -100,6 +110,12 @@ func (l *lexer) lex() {
 			case ')':
 				l.next()
 				l.push(TokenRoundClose, start)
+			case '\r':
+				l.next()
+				if l.peek() == '\n' {
+					l.next()
+				}
+				l.push(TokenVSpace, start)
 			case '\n':
 				l.next()
 				l.push(TokenVSpace, start)
@@ -149,6 +165,18 @@ Comment:
 		l.next()
 	}
 	l.push(TokenComment, start)
+}
+
+func (l *lexer) eq() {
+	start := l.index
+	l.next()
+	switch l.peek() {
+	case '=':
+		l.next()
+		l.push(TokenEqEq, start)
+	default:
+		l.push(TokenEq, start)
+	}
 }
 
 func (l *lexer) hspace() {

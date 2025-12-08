@@ -1,8 +1,6 @@
 package script
 
-import (
-	"log"
-)
+import "log"
 
 type Engine struct {
 	// Types map[Type]Type // TODO or use unique.Make(type) instead?
@@ -22,6 +20,9 @@ func NewEngine() *Engine {
 
 func (e *Engine) Process(source string) *Module {
 	tokens := e.lexer.Lex(source)
+	// for _, token := range tokens {
+	// 	fmt.Printf("token: %v\n", token)
+	// }
 	parseTree := e.parser.Parse(tokens)
 	// parseTree.Print()
 	module := e.treeBuilder.Norm(parseTree)
@@ -31,7 +32,7 @@ func (e *Engine) Process(source string) *Module {
 		},
 		Kids: []Node{doLog},
 	}
-	// tree.Print()
+	// module.Print()
 	e.analyze(module)
 	return module
 }
@@ -52,5 +53,7 @@ func (e *Engine) analyze(module *Module) {
 }
 
 func doLog(s string) {
+	// TODO Option to select where `log` goes?
+	// fmt.Fprintln(os.Stderr, s)
 	log.Println(s)
 }

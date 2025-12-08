@@ -56,6 +56,7 @@ const (
 	ParseParams
 	ParseString
 	ParseToken
+	ParseVar
 )
 
 //go:generate stringer -type=ParseKind
@@ -208,6 +209,8 @@ func (p *parser) parseAtom() {
 		p.parseModify()
 	case TokenStringOpen:
 		p.parseString()
+	case TokenVar:
+		p.parseVar()
 	default:
 		start := len(p.work)
 		p.pushToken(t)
@@ -349,4 +352,30 @@ Params:
 		}
 	}
 	p.commit(ParseString, start)
+}
+
+func (p *parser) parseVar() {
+	start := len(p.work)
+	p.pushToken(p.peek())
+	// Check for name.
+	if t := p.peek(); t.Kind == TokenId {
+		p.pushToken(t)
+	}
+	// Check for type.
+	switch t := p.peek(); t.Kind {
+	case TokenEq:
+	case TokenVSpace:
+	default:
+		// Type.
+		p.parseExpr()
+	}
+	// Check for init.
+	if t := p.peek(); t.Kind == TokenEq {
+		p.pushToken(t)
+		if p.peek().Kind == TokenVSpace {
+			p.pushToken(t)
+		}
+		p.parseExpr()
+	}
+	p.commit(ParseVar, start)
 }

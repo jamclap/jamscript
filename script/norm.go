@@ -1,7 +1,6 @@
 package script
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -44,8 +43,6 @@ func (b *treeBuilder) normNode(p ParseNode) {
 		b.normString(p)
 	case ParseToken:
 		b.normToken(p)
-	default:
-		panic(fmt.Sprintf("unexpected script.ParseKind: %#v", p.Kind))
 	}
 }
 
