@@ -9,12 +9,12 @@ import (
 	"github.com/jamclap/jamscript/script"
 )
 
-func BenchmarkProcessHi(b *testing.B) {
-	process(hi, b)
+func BenchmarkProcessBranch(b *testing.B) {
+	process(branch, b)
 }
 
-func BenchmarkRunHi(b *testing.B) {
-	run(hi, b)
+func BenchmarkRunBranch(b *testing.B) {
+	run(branch, b)
 }
 
 func BenchmarkProcessExplore(b *testing.B) {
@@ -23,6 +23,14 @@ func BenchmarkProcessExplore(b *testing.B) {
 
 func BenchmarkRunExplore(b *testing.B) {
 	run(explore, b)
+}
+
+func BenchmarkProcessHi(b *testing.B) {
+	process(hi, b)
+}
+
+func BenchmarkRunHi(b *testing.B) {
+	run(hi, b)
 }
 
 func process(source string, b *testing.B) {
@@ -40,6 +48,9 @@ func run(source string, b *testing.B) {
 		e.Run(module)
 	}
 }
+
+//go:embed examples/branch.jam
+var branch string
 
 //go:embed examples/explore.jam
 var explore string

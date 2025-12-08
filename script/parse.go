@@ -214,6 +214,7 @@ func (p *parser) parseAtom() {
 		p.parseString(t)
 	case TokenVar:
 		p.parseVar(t)
+	case TokenVSpace:
 	default:
 		start := len(p.work)
 		p.pushToken(t)
@@ -263,6 +264,28 @@ func (p *parser) parseCall() {
 func (p *parser) parseCase(t Token) {
 	start := len(p.work)
 	p.pushToken(t)
+	// TODO More elaborate cases.
+	p.parseExpr()
+	if t := p.peek(); t.Kind == TokenThen {
+		p.pushToken(t)
+	}
+	switch t := p.peek(); t.Kind {
+	case TokenVSpace:
+	Block:
+		for p.has() {
+			switch t := p.peek(); t.Kind {
+			case TokenVSpace:
+				p.pushToken(t)
+			case TokenCase, TokenElse, TokenEnd:
+				p.pushToken(t)
+				break Block
+			default:
+				p.parseStatement()
+			}
+		}
+	default:
+		p.parseExpr()
+	}
 	p.commit(ParseCase, start)
 }
 
