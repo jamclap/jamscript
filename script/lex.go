@@ -29,6 +29,7 @@ const (
 	TokenNone TokenKind = iota
 	TokenAs
 	TokenBreak
+	TokenCase
 	TokenChange
 	TokenClass
 	TokenComma
@@ -257,6 +258,7 @@ Str:
 var keys = map[string]TokenKind{
 	"as":       TokenAs,
 	"break":    TokenBreak,
+	"case":     TokenCase,
 	"class":    TokenClass,
 	"change":   TokenChange,
 	"const":    TokenConst,

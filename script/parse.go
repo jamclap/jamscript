@@ -49,6 +49,7 @@ const (
 	ParseArgs
 	ParseBlock
 	ParseCall
+	ParseCase
 	ParseFun
 	ParseJunk
 	ParseModify
@@ -201,16 +202,18 @@ func (p *parser) parseAtom() {
 		return
 	}
 	switch t := p.peek(); t.Kind {
+	case TokenCase:
+		p.parseCase(t)
 	case TokenFun:
-		p.parseFun()
+		p.parseFun(t)
 	case TokenId:
 		p.pushToken(t)
 	case TokenPlug, TokenPub:
-		p.parseModify()
+		p.parseModify(t)
 	case TokenStringOpen:
-		p.parseString()
+		p.parseString(t)
 	case TokenVar:
-		p.parseVar()
+		p.parseVar(t)
 	default:
 		start := len(p.work)
 		p.pushToken(t)
@@ -257,13 +260,19 @@ func (p *parser) parseCall() {
 	}
 }
 
+func (p *parser) parseCase(t Token) {
+	start := len(p.work)
+	p.pushToken(t)
+	p.commit(ParseCase, start)
+}
+
 func (p *parser) parseExpr() {
 	p.parseCall()
 }
 
-func (p *parser) parseFun() {
+func (p *parser) parseFun(t Token) {
 	start := len(p.work)
-	p.pushToken(p.peek())
+	p.pushToken(t)
 	if t := p.peek(); t.Kind == TokenId {
 		p.pushToken(t)
 	}
@@ -280,8 +289,9 @@ func (p *parser) parseFun() {
 	p.commit(ParseFun, start)
 }
 
-func (p *parser) parseModify() {
+func (p *parser) parseModify(t Token) {
 	start := len(p.work)
+	p.pushToken(t)
 	found := false
 Mods:
 	for p.has() {
@@ -340,9 +350,9 @@ func (p *parser) parseStatement() {
 	p.parseExpr()
 }
 
-func (p *parser) parseString() {
+func (p *parser) parseString(t Token) {
 	start := len(p.work)
-	p.pushToken(p.peek())
+	p.pushToken(t)
 Params:
 	for p.has() {
 		t := p.peek()
@@ -354,9 +364,9 @@ Params:
 	p.commit(ParseString, start)
 }
 
-func (p *parser) parseVar() {
+func (p *parser) parseVar(t Token) {
 	start := len(p.work)
-	p.pushToken(p.peek())
+	p.pushToken(t)
 	// Check for name.
 	if t := p.peek(); t.Kind == TokenId {
 		p.pushToken(t)
