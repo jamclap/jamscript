@@ -83,7 +83,7 @@ func (n ParseNode) NextEx(start int, keepVSpace bool) (int, ParseNode) {
 			switch kid.Kind {
 			case ParseToken:
 				switch kid.Token.Kind {
-				case TokenComment, TokenHSpace:
+				case TokenCommentText, TokenCommentOpen, TokenHSpace:
 				case TokenVSpace:
 					if keepVSpace {
 						return i + 1, kid
@@ -154,7 +154,10 @@ func (p *parser) commit(kind ParseKind, start int) {
 func (p *parser) has() bool {
 	for p.index < len(p.tokens) {
 		t := p.tokens[p.index]
-		if !(t.Kind == TokenComment || t.Kind == TokenHSpace) {
+		switch t.Kind {
+		// TODO Group comment tokens under ParseComment?
+		case TokenCommentText, TokenCommentOpen, TokenHSpace:
+		default:
 			return true
 		}
 		p.pushToken(t)

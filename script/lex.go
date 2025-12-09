@@ -8,6 +8,7 @@ import (
 
 func (l *lexer) Lex(source string) []Token {
 	l.index = 0
+	l.peekedSize = 0
 	l.source = source
 	l.tokens = l.tokens[:0]
 	l.lex()
@@ -33,7 +34,8 @@ const (
 	TokenChange
 	TokenClass
 	TokenComma
-	TokenComment
+	TokenCommentOpen
+	TokenCommentText
 	TokenConst
 	TokenContinue
 	TokenElse
@@ -78,9 +80,11 @@ const (
 //go:generate stringer -type=TokenKind
 
 type lexer struct {
-	index  int
-	source string
-	tokens []Token
+	index      int
+	source     string
+	peeked     rune
+	peekedSize int
+	tokens     []Token
 }
 
 func (l *lexer) lex() {
@@ -95,6 +99,8 @@ func (l *lexer) lex() {
 			start := l.index
 			switch r {
 			case '#':
+				l.next()
+				l.push(TokenCommentOpen, start)
 				l.comment()
 			case '"':
 				l.next()
@@ -102,6 +108,12 @@ func (l *lexer) lex() {
 				l.str()
 			case '=':
 				l.eq()
+			// case '<':
+			// 	l.next()
+			// 	l.push(TokenRoundOpen, start)
+			// case '>':
+			// 	l.next()
+			// 	l.push(TokenRoundClose, start)
 			case ',':
 				l.next()
 				l.push(TokenComma, start)
@@ -133,6 +145,11 @@ func (l *lexer) has() bool {
 }
 
 func (l *lexer) next() {
+	if l.peekedSize > 0 {
+		l.index += l.peekedSize
+		l.peekedSize = 0
+		return
+	}
 	if !l.has() {
 		return
 	}
@@ -141,11 +158,16 @@ func (l *lexer) next() {
 }
 
 func (l *lexer) peek() rune {
+	if l.peekedSize > 0 {
+		r := l.peeked
+		l.peekedSize = 0
+		return r
+	}
 	if !l.has() {
 		return 0
 	}
-	r, _ := utf8.DecodeRuneInString(l.source[l.index:])
-	return r
+	l.peeked, l.peekedSize = utf8.DecodeRuneInString(l.source[l.index:])
+	return l.peeked
 }
 
 func (l *lexer) push(kind TokenKind, start int) {
@@ -165,7 +187,7 @@ Comment:
 		}
 		l.next()
 	}
-	l.push(TokenComment, start)
+	l.push(TokenCommentText, start)
 }
 
 func (l *lexer) eq() {
