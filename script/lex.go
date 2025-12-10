@@ -51,6 +51,7 @@ const (
 	TokenHSpace
 	TokenId
 	TokenIf
+	TokenInt
 	TokenIs
 	TokenImport
 	TokenLe
@@ -93,6 +94,8 @@ func (l *lexer) lex() {
 		switch {
 		case unicode.IsLetter(r) || r == '$' || r == '_':
 			l.id()
+		case r >= '0' && r <= '9':
+			l.number()
 		case r == ' ' || r == '\t':
 			l.hspace()
 		default:
@@ -107,13 +110,32 @@ func (l *lexer) lex() {
 				l.push(TokenStringOpen, start)
 				l.str()
 			case '=':
-				l.eq()
-			// case '<':
-			// 	l.next()
-			// 	l.push(TokenRoundOpen, start)
-			// case '>':
-			// 	l.next()
-			// 	l.push(TokenRoundClose, start)
+				l.next()
+				switch r := l.peek(); r {
+				case '=':
+					l.next()
+					l.push(TokenEqEq, start)
+				default:
+					l.push(TokenEq, start)
+				}
+			case '<':
+				l.next()
+				switch r := l.peek(); r {
+				case '=':
+					l.next()
+					l.push(TokenLe, start)
+				default:
+					l.push(TokenLt, start)
+				}
+			case '>':
+				l.next()
+				switch r := l.peek(); r {
+				case '=':
+					l.next()
+					l.push(TokenGe, start)
+				default:
+					l.push(TokenGt, start)
+				}
 			case ',':
 				l.next()
 				l.push(TokenComma, start)
@@ -190,18 +212,6 @@ Comment:
 	l.push(TokenCommentText, start)
 }
 
-func (l *lexer) eq() {
-	start := l.index
-	l.next()
-	switch l.peek() {
-	case '=':
-		l.next()
-		l.push(TokenEqEq, start)
-	default:
-		l.push(TokenEq, start)
-	}
-}
-
 func (l *lexer) hspace() {
 	start := l.index
 HSpace:
@@ -239,6 +249,23 @@ Id:
 		kind = TokenId
 	}
 	l.push(kind, start)
+}
+
+func (l *lexer) number() {
+	start := l.index
+	// TODO Include negative in int literal?
+Int:
+	for l.has() {
+		r := l.peek()
+		switch {
+		case r >= '0' && r <= '9':
+			l.next()
+		default:
+			break Int
+		}
+	}
+	// TODO Check if it's a float literal at this point.
+	l.push(TokenInt, start)
 }
 
 func (l *lexer) str() {

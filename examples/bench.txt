@@ -3,18 +3,18 @@ goos: windows
 goarch: amd64
 pkg: github.com/jamclap/jamscript
 cpu: Intel(R) Core(TM) 7 150U
-BenchmarkProcessBranch-12          43220             27198 ns/op           35289 B/op         38 allocs/op
-BenchmarkRunBranch-12            7955971               152.6 ns/op             0 B/op          0 allocs/op
-BenchmarkProcessExplore-12         14457             83587 ns/op          115979 B/op         36 allocs/op
-BenchmarkRunExplore-12          164617407                7.271 ns/op           0 B/op          0 allocs/op
-BenchmarkProcessHi-12              68436             17294 ns/op           25104 B/op         35 allocs/op
-BenchmarkRunHi-12                5303180               226.8 ns/op            64 B/op          4 allocs/op
+BenchmarkProcessBranch-12          40581             29472 ns/op           34561 B/op         31 allocs/op
+BenchmarkRunBranch-12            9600452               128.9 ns/op             0 B/op          0 allocs/op
+BenchmarkProcessExplore-12         14169             85155 ns/op          114440 B/op         36 allocs/op
+BenchmarkRunExplore-12          169702574                7.171 ns/op           0 B/op          0 allocs/op
+BenchmarkProcessHi-12              68473             18207 ns/op           25104 B/op         35 allocs/op
+BenchmarkRunHi-12                5269566               222.4 ns/op            64 B/op          4 allocs/op
 PASS
-ok      github.com/jamclap/jamscript    7.376s
+ok      github.com/jamclap/jamscript    7.476s
 PS C:\Users\tjpal\projects\jamscript> ls .\target\jams.exe
 
     Directory: C:\Users\tjpal\projects\jamscript\target
 
 Mode                 LastWriteTime         Length Name
 ----                 -------------         ------ ----
--a---           12/9/2025  6:00 AM        1916416 jams.exe
+-a---           12/9/2025  9:32 AM        1905664 jams.exe

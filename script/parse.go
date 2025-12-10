@@ -50,12 +50,18 @@ const (
 	ParseBlock
 	ParseCall
 	ParseCase
+	ParseComment
+	ParseElse
 	ParseFun
+	ParseInfix
 	ParseJunk
 	ParseModify
 	ParseParam
 	ParseParams
+	ParseReturn
 	ParseString
+	ParseSwitch
+	ParseSwitchEmpty
 	ParseToken
 	ParseVar
 )
@@ -81,6 +87,7 @@ func (n ParseNode) NextEx(start int, keepVSpace bool) (int, ParseNode) {
 		for i := start; i < len(n.Kids); i++ {
 			kid := n.Kids[i]
 			switch kid.Kind {
+			case ParseComment:
 			case ParseToken:
 				switch kid.Token.Kind {
 				case TokenCommentText, TokenCommentOpen, TokenHSpace:
@@ -152,11 +159,19 @@ func (p *parser) commit(kind ParseKind, start int) {
 }
 
 func (p *parser) has() bool {
+Has:
 	for p.index < len(p.tokens) {
 		t := p.tokens[p.index]
 		switch t.Kind {
-		// TODO Group comment tokens under ParseComment?
-		case TokenCommentText, TokenCommentOpen, TokenHSpace:
+		case TokenCommentOpen:
+			start := len(p.work)
+			p.pushToken(t)
+			if t = p.tokens[p.index]; t.Kind == TokenCommentText {
+				p.pushToken(t)
+				p.commit(ParseComment, start)
+			}
+			continue Has
+		case TokenCommentText, TokenHSpace:
 		default:
 			return true
 		}
@@ -207,14 +222,20 @@ func (p *parser) parseAtom() {
 	switch t := p.peek(); t.Kind {
 	case TokenCase:
 		p.parseCase(t)
+	case TokenElse:
+		p.parseElse(t)
 	case TokenFun:
 		p.parseFun(t)
-	case TokenId:
+	case TokenId, TokenInt:
 		p.pushToken(t)
 	case TokenPlug, TokenPub:
 		p.parseModify(t)
+	case TokenReturn:
+		p.parseReturn(t)
 	case TokenStringOpen:
 		p.parseString(t)
+	case TokenSwitch:
+		p.parseSwitch(t)
 	case TokenVar:
 		p.parseVar(t)
 	case TokenVSpace:
@@ -227,19 +248,27 @@ func (p *parser) parseAtom() {
 
 func (p *parser) parseBlock() {
 	start := len(p.work)
-Block:
-	for p.has() {
-		switch t := p.peek(); t.Kind {
-		case TokenVSpace:
-			p.pushToken(t)
-		case TokenEnd:
-			p.pushToken(t)
-			break Block
-		default:
-			p.parseStatement()
-		}
+	if t := p.peek(); t.Kind == TokenThen {
+		p.pushToken(t)
 	}
-	p.commit(ParseBlock, start)
+	switch t := p.peek(); t.Kind {
+	case TokenVSpace:
+	Block:
+		for p.has() {
+			switch t := p.peek(); t.Kind {
+			case TokenVSpace:
+				p.pushToken(t)
+			case TokenEnd:
+				p.pushToken(t)
+				break Block
+			default:
+				p.parseStatement()
+			}
+		}
+		p.commit(ParseBlock, start)
+	default:
+		p.parseExpr()
+	}
 }
 
 func (p *parser) parseBlockTop() {
@@ -269,6 +298,11 @@ func (p *parser) parseCase(t Token) {
 	p.pushToken(t)
 	// TODO More elaborate cases.
 	p.parseExpr()
+	p.parseCaseFinish()
+	p.commit(ParseCase, start)
+}
+
+func (p *parser) parseCaseFinish() {
 	if t := p.peek(); t.Kind == TokenThen {
 		p.pushToken(t)
 	}
@@ -280,7 +314,6 @@ func (p *parser) parseCase(t Token) {
 			case TokenVSpace:
 				p.pushToken(t)
 			case TokenCase, TokenElse, TokenEnd:
-				p.pushToken(t)
 				break Block
 			default:
 				p.parseStatement()
@@ -289,11 +322,29 @@ func (p *parser) parseCase(t Token) {
 	default:
 		p.parseExpr()
 	}
-	p.commit(ParseCase, start)
+}
+
+func (p *parser) parseCompare() {
+	start := len(p.work)
+	p.parseCall()
+	switch t := p.peek(); t.Kind {
+	case TokenEqEq, TokenGe, TokenGt, TokenLe, TokenLt, TokenNEq:
+		p.pushToken(t)
+		p.parseCompare()
+		p.commit(ParseInfix, start)
+	default:
+	}
+}
+
+func (p *parser) parseElse(t Token) {
+	start := len(p.work)
+	p.pushToken(t)
+	p.parseCaseFinish()
+	p.commit(ParseElse, start)
 }
 
 func (p *parser) parseExpr() {
-	p.parseCall()
+	p.parseCompare()
 }
 
 func (p *parser) parseFun(t Token) {
@@ -305,13 +356,7 @@ func (p *parser) parseFun(t Token) {
 	if p.peek().Kind == TokenRoundOpen {
 		p.parseParams()
 	}
-	switch t := p.peek(); t.Kind {
-	case TokenThen:
-		p.pushToken(t)
-		p.parseExpr()
-	case TokenVSpace:
-		p.parseBlock()
-	}
+	p.parseBlock()
 	p.commit(ParseFun, start)
 }
 
@@ -372,6 +417,17 @@ Params:
 	p.commit(ParseParams, start)
 }
 
+func (p *parser) parseReturn(t Token) {
+	start := len(p.work)
+	p.pushToken(t)
+	switch t := p.peek(); t.Kind {
+	case TokenVSpace:
+	default:
+		p.parseExpr()
+	}
+	p.commit(ParseReturn, start)
+}
+
 func (p *parser) parseStatement() {
 	p.parseExpr()
 }
@@ -388,6 +444,20 @@ Params:
 		}
 	}
 	p.commit(ParseString, start)
+}
+
+func (p *parser) parseSwitch(t Token) {
+	start := len(p.work)
+	kind := ParseSwitch
+	p.pushToken(t)
+	switch t := p.peek(); t.Kind {
+	case TokenThen, TokenVSpace:
+		kind = ParseSwitchEmpty
+	default:
+		p.parseExpr()
+	}
+	p.parseBlock()
+	p.commit(kind, start)
 }
 
 func (p *parser) parseVar(t Token) {

@@ -13,19 +13,25 @@ func _() {
 	_ = x[ParseBlock-2]
 	_ = x[ParseCall-3]
 	_ = x[ParseCase-4]
-	_ = x[ParseFun-5]
-	_ = x[ParseJunk-6]
-	_ = x[ParseModify-7]
-	_ = x[ParseParam-8]
-	_ = x[ParseParams-9]
-	_ = x[ParseString-10]
-	_ = x[ParseToken-11]
-	_ = x[ParseVar-12]
+	_ = x[ParseComment-5]
+	_ = x[ParseElse-6]
+	_ = x[ParseFun-7]
+	_ = x[ParseInfix-8]
+	_ = x[ParseJunk-9]
+	_ = x[ParseModify-10]
+	_ = x[ParseParam-11]
+	_ = x[ParseParams-12]
+	_ = x[ParseReturn-13]
+	_ = x[ParseString-14]
+	_ = x[ParseSwitch-15]
+	_ = x[ParseSwitchEmpty-16]
+	_ = x[ParseToken-17]
+	_ = x[ParseVar-18]
 }
 
-const _ParseKind_name = "ParseNoneParseArgsParseBlockParseCallParseCaseParseFunParseJunkParseModifyParseParamParseParamsParseStringParseTokenParseVar"
+const _ParseKind_name = "ParseNoneParseArgsParseBlockParseCallParseCaseParseCommentParseElseParseFunParseInfixParseJunkParseModifyParseParamParseParamsParseReturnParseStringParseSwitchParseSwitchEmptyParseTokenParseVar"
 
-var _ParseKind_index = [...]uint8{0, 9, 18, 28, 37, 46, 54, 63, 74, 84, 95, 106, 116, 124}
+var _ParseKind_index = [...]uint8{0, 9, 18, 28, 37, 46, 58, 67, 75, 85, 94, 105, 115, 126, 137, 148, 159, 175, 185, 193}
 
 func (i ParseKind) String() string {
 	idx := int(i) - 0
