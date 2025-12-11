@@ -21,17 +21,18 @@ func _() {
 	_ = x[ParseModify-10]
 	_ = x[ParseParam-11]
 	_ = x[ParseParams-12]
-	_ = x[ParseReturn-13]
-	_ = x[ParseString-14]
-	_ = x[ParseSwitch-15]
-	_ = x[ParseSwitchEmpty-16]
-	_ = x[ParseToken-17]
-	_ = x[ParseVar-18]
+	_ = x[ParsePrefix-13]
+	_ = x[ParseReturn-14]
+	_ = x[ParseString-15]
+	_ = x[ParseSwitch-16]
+	_ = x[ParseSwitchEmpty-17]
+	_ = x[ParseToken-18]
+	_ = x[ParseVar-19]
 }
 
-const _ParseKind_name = "ParseNoneParseArgsParseBlockParseCallParseCaseParseCommentParseElseParseFunParseInfixParseJunkParseModifyParseParamParseParamsParseReturnParseStringParseSwitchParseSwitchEmptyParseTokenParseVar"
+const _ParseKind_name = "ParseNoneParseArgsParseBlockParseCallParseCaseParseCommentParseElseParseFunParseInfixParseJunkParseModifyParseParamParseParamsParsePrefixParseReturnParseStringParseSwitchParseSwitchEmptyParseTokenParseVar"
 
-var _ParseKind_index = [...]uint8{0, 9, 18, 28, 37, 46, 58, 67, 75, 85, 94, 105, 115, 126, 137, 148, 159, 175, 185, 193}
+var _ParseKind_index = [...]uint8{0, 9, 18, 28, 37, 46, 58, 67, 75, 85, 94, 105, 115, 126, 137, 148, 159, 170, 186, 196, 204}
 
 func (i ParseKind) String() string {
 	idx := int(i) - 0

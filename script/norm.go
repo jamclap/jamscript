@@ -1,6 +1,7 @@
 package script
 
 import (
+	"strconv"
 	"strings"
 )
 
@@ -45,6 +46,8 @@ func (b *treeBuilder) normNode(p ParseNode) {
 		b.normParam(p)
 	case ParseParams:
 		b.normParams(p)
+	case ParsePrefix:
+		b.normPrefix(p)
 	case ParseString:
 		b.normString(p)
 	case ParseSwitch, ParseSwitchEmpty:
@@ -240,6 +243,22 @@ Params:
 	b.commitBlock(start)
 }
 
+func (b *treeBuilder) normPrefix(p ParseNode) {
+	next, prefix := p.Next(0)
+	_, node := p.Next(next)
+	switch prefix.Token.Kind {
+	case TokenSub:
+		switch node.Token.Kind {
+		case TokenInt:
+			b.normTokenInt(node, -1)
+			return
+		default:
+			// TODO Call neg method.
+		}
+	}
+	b.normNode(node)
+}
+
 func (b *treeBuilder) normString(p ParseNode) {
 	builder := strings.Builder{}
 	next := p.ExpectToken(0, TokenStringOpen)
@@ -308,12 +327,23 @@ func RuneAt(s string, i int) rune {
 
 func (b *treeBuilder) normToken(p ParseNode) {
 	switch p.Token.Kind {
-	case TokenId: // TODO numeric tokens or such like
-	default:
-		return
+	case TokenId:
+		b.pushWork(inNode{kind: NodeToken, index: len(b.tokens)})
+		b.tokens = append(b.tokens, p.Token)
+	case TokenInt:
+		b.normTokenInt(p, 1)
 	}
-	b.pushWork(inNode{kind: NodeToken, index: len(b.tokens)})
-	b.tokens = append(b.tokens, p.Token)
+}
+
+func (b *treeBuilder) normTokenInt(p ParseNode, scale int64) {
+	// Store up to 64 bits here, even if downsized later.
+	// TODO Downsize to 32 bits for interpreter?
+	i, err := strconv.ParseInt(p.Token.Text, 10, 64)
+	if err != nil {
+		// log.Printf("bad int: %v\n", i)
+	}
+	b.pushWork(inNode{kind: NodeValue, index: len(b.values)})
+	b.values = append(b.values, i*scale)
 }
 
 func (b *treeBuilder) normVar(p ParseNode) {

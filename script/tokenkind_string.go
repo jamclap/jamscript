@@ -50,18 +50,19 @@ func _() {
 	_ = x[TokenStringClose-39]
 	_ = x[TokenStringOpen-40]
 	_ = x[TokenStruct-41]
-	_ = x[TokenSwitch-42]
-	_ = x[TokenThen-43]
-	_ = x[TokenVSpace-44]
-	_ = x[TokenUnion-45]
-	_ = x[TokenUse-46]
-	_ = x[TokenVar-47]
-	_ = x[TokenVartype-48]
+	_ = x[TokenSub-42]
+	_ = x[TokenSwitch-43]
+	_ = x[TokenThen-44]
+	_ = x[TokenVSpace-45]
+	_ = x[TokenUnion-46]
+	_ = x[TokenUse-47]
+	_ = x[TokenVar-48]
+	_ = x[TokenVartype-49]
 }
 
-const _TokenKind_name = "TokenNoneTokenAsTokenBreakTokenCaseTokenChangeTokenClassTokenCommaTokenCommentOpenTokenCommentTextTokenConstTokenContinueTokenElseTokenEndTokenEqTokenEqEqTokenEnumTokenForTokenFromTokenFunTokenGeTokenGtTokenHSpaceTokenIdTokenIfTokenIntTokenIsTokenImportTokenLeTokenLtTokenJunkTokenNotTokenNEqTokenPlugTokenPubTokenReturnTokenRoundCloseTokenRoundOpenTokenStringEscapeTokenStringTextTokenStringCloseTokenStringOpenTokenStructTokenSwitchTokenThenTokenVSpaceTokenUnionTokenUseTokenVarTokenVartype"
+const _TokenKind_name = "TokenNoneTokenAsTokenBreakTokenCaseTokenChangeTokenClassTokenCommaTokenCommentOpenTokenCommentTextTokenConstTokenContinueTokenElseTokenEndTokenEqTokenEqEqTokenEnumTokenForTokenFromTokenFunTokenGeTokenGtTokenHSpaceTokenIdTokenIfTokenIntTokenIsTokenImportTokenLeTokenLtTokenJunkTokenNotTokenNEqTokenPlugTokenPubTokenReturnTokenRoundCloseTokenRoundOpenTokenStringEscapeTokenStringTextTokenStringCloseTokenStringOpenTokenStructTokenSubTokenSwitchTokenThenTokenVSpaceTokenUnionTokenUseTokenVarTokenVartype"
 
-var _TokenKind_index = [...]uint16{0, 9, 16, 26, 35, 46, 56, 66, 82, 98, 108, 121, 130, 138, 145, 154, 163, 171, 180, 188, 195, 202, 213, 220, 227, 235, 242, 253, 260, 267, 276, 284, 292, 301, 309, 320, 335, 349, 366, 381, 397, 412, 423, 434, 443, 454, 464, 472, 480, 492}
+var _TokenKind_index = [...]uint16{0, 9, 16, 26, 35, 46, 56, 66, 82, 98, 108, 121, 130, 138, 145, 154, 163, 171, 180, 188, 195, 202, 213, 220, 227, 235, 242, 253, 260, 267, 276, 284, 292, 301, 309, 320, 335, 349, 366, 381, 397, 412, 423, 431, 442, 451, 462, 472, 480, 488, 500}
 
 func (i TokenKind) String() string {
 	idx := int(i) - 0

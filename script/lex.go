@@ -69,6 +69,7 @@ const (
 	TokenStringClose
 	TokenStringOpen
 	TokenStruct
+	TokenSub
 	TokenSwitch
 	TokenThen
 	TokenVSpace
@@ -117,6 +118,13 @@ func (l *lexer) lex() {
 					l.push(TokenEqEq, start)
 				default:
 					l.push(TokenEq, start)
+				}
+			case '-':
+				l.next()
+				switch r := l.peek(); r {
+				// TODO Compound operators.
+				default:
+					l.push(TokenSub, start)
 				}
 			case '<':
 				l.next()
