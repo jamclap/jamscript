@@ -27,8 +27,14 @@ func (b *treeBuilder) normNode(p ParseNode) {
 		b.normBlock(p)
 	case ParseCall:
 		b.normCall(p)
+	case ParseCase:
+		b.normCase(p)
+	case ParseElse:
+		b.normElse(p)
 	case ParseFun:
 		b.normFun(p)
+	case ParseInfix:
+		b.normInfix(p)
 	case ParseJunk:
 		b.normJunk(p)
 	case ParseModify:
@@ -41,8 +47,26 @@ func (b *treeBuilder) normNode(p ParseNode) {
 		b.normParams(p)
 	case ParseString:
 		b.normString(p)
+	case ParseSwitch, ParseSwitchEmpty:
+		b.normSwitch(p)
 	case ParseToken:
 		b.normToken(p)
+	case ParseVar:
+		b.normVar(p)
+	}
+}
+
+func (b *treeBuilder) normNodeCommit(p ParseNode) Idx[inNode] {
+	start := len(b.work)
+	b.normNode(p)
+	switch {
+	// TODO Complain if more than one node?
+	case len(b.work) > start:
+		b.commitHeadless(start)
+		return Idx[inNode](len(b.nodes) - 1)
+	default:
+		// TODO Complain here, too?
+		return 0
 	}
 }
 
@@ -93,7 +117,7 @@ func (b *treeBuilder) normCall(p ParseNode) {
 	next, part = p.Next(next)
 	if part.Kind == ParseArgs {
 		b.normArgs(part)
-		call.args = b.popWorkBlock().kids
+		call.args = b.popWorkBlock()
 		_, part = p.Next(next)
 	}
 	b.expectNone(part)
@@ -101,6 +125,14 @@ func (b *treeBuilder) normCall(p ParseNode) {
 	call.callee = Idx[inNode](len(b.nodes))
 	b.commit(inNode{kind: NodeCall, index: len(b.calls)}, start)
 	b.calls = append(b.calls, call)
+}
+
+func (b *treeBuilder) normCase(p ParseNode) {
+	// panic("unimplemented")
+}
+
+func (b *treeBuilder) normElse(p ParseNode) {
+	// panic("unimplemented")
 }
 
 func (b *treeBuilder) normFun(p ParseNode) {
@@ -115,19 +147,23 @@ func (b *treeBuilder) normFun(p ParseNode) {
 	}
 	if part.Kind == ParseParams {
 		b.normParams(part)
-		fun.params = b.popWorkBlock().kids
+		fun.params = b.popWorkBlock()
 		next, part = p.Next(next)
 	}
 	// TODO Return type.
 	if part.Kind == ParseBlock {
 		b.normBlock(part)
-		fun.kids = b.popWorkBlock().kids
+		fun.kids = b.popWorkBlock()
 		_, part = p.Next(next)
 	}
 	b.expectNone(part)
 	b.pushWork(inNode{kind: NodeFun, index: len(b.funs)})
 	b.funs = append(b.funs, fun)
 	// log.Printf("fun %s %v\n", fun.Name, fun.params)
+}
+
+func (b *treeBuilder) normInfix(p ParseNode) {
+	// panic("unimplemented")
 }
 
 func (b *treeBuilder) normJunk(p ParseNode) {
@@ -172,30 +208,9 @@ func (b *treeBuilder) normNone(p ParseNode) {
 }
 
 func (b *treeBuilder) normParam(p ParseNode) {
-	v := inVar{}
-	next, part := p.Next(0)
-	if part.Token.Kind == TokenId {
-		v.Name = part.Token.Text
-		next, part = p.Next(next)
-	} else {
-		v.Name = ""
-	}
-	if part.Kind != ParseNone {
-		// TODO Fix logic, and make it easy to do things like this.
-		// TODO Presumably need to commit the top of work and get that.
-		// TODO Use a wrapper with anonymous function for the helper?
-		// n := len(b.nodes)
-		b.normNode(part)
-		// if len(b.nodes) > n {
-		// 	v.typeInfo = Idx[inNode](n)
-		// }
-		_, part = p.Next(next)
-	}
-	b.expectNone(part)
-	// Param instances are only referenced directly through params, so nodes can
-	// go straight on without prior work storage.
-	b.pushWork(inNode{kind: NodeVar, index: len(b.vars)})
-	b.vars = append(b.vars, v)
+	// No var keyword here.
+	// TODO Just check for one anyway?
+	b.normVarFinish(p, 0)
 }
 
 func (b *treeBuilder) normParams(p ParseNode) {
@@ -255,6 +270,32 @@ Parts:
 	b.values = append(b.values, builder.String())
 }
 
+func (b *treeBuilder) normSwitch(p ParseNode) {
+	s := inSwitch{}
+	next := p.ExpectToken(0, TokenSwitch)
+	next, part := p.Next(next)
+	switch p.Kind {
+	case ParseSwitch:
+		b.normNode(part)
+		next, part = p.Next(next)
+	case ParseSwitchEmpty:
+		// No subject expected here.
+	}
+	// TODO skipThen helper? or should `then` be part of the ParseBlock node?
+	if part.Kind == ParseToken && part.Token.Kind == TokenThen {
+		next, part = p.Next(next)
+	}
+	if part.Kind == ParseBlock {
+		b.normBlock(part)
+		s.kids = b.popWorkBlock()
+		_, part = p.Next(next)
+	}
+	b.expectNone(part)
+	b.pushWork(inNode{kind: NodeSwitch, index: len(b.switches)})
+	b.switches = append(b.switches, s)
+	// fmt.Printf("s: %+v\n", s)
+}
+
 func RuneAt(s string, i int) rune {
 	for _, r := range s {
 		if i == 0 {
@@ -273,4 +314,34 @@ func (b *treeBuilder) normToken(p ParseNode) {
 	}
 	b.pushWork(inNode{kind: NodeToken, index: len(b.tokens)})
 	b.tokens = append(b.tokens, p.Token)
+}
+
+func (b *treeBuilder) normVar(p ParseNode) {
+	next := p.ExpectToken(0, TokenVar)
+	b.normVarFinish(p, next)
+}
+
+func (b *treeBuilder) normVarFinish(p ParseNode, next int) {
+	start := len(b.work)
+	v := inVar{}
+	next, part := p.Next(next)
+	if part.Token.Kind == TokenId {
+		v.Name = part.Token.Text
+		next, part = p.Next(next)
+	} else {
+		v.Name = ""
+	}
+	if part.Kind != ParseNone && part.Token.Kind != TokenEq {
+		v.typ = b.normNodeCommit(part)
+		next, part = p.Next(next)
+	}
+	if part.Token.Kind == TokenEq {
+		next, part = p.Next(next)
+		v.value = b.normNodeCommit(part)
+		_, part = p.Next(next)
+	}
+	b.expectNone(part)
+	b.commit(inNode{kind: NodeVar, index: len(b.vars)}, start)
+	b.vars = append(b.vars, v)
+	// fmt.Printf("v: %+v\n", v)
 }

@@ -12,16 +12,19 @@ func _() {
 	_ = x[NodeArgs-1]
 	_ = x[NodeBlock-2]
 	_ = x[NodeCall-3]
-	_ = x[NodeFun-4]
-	_ = x[NodeToken-5]
-	_ = x[NodeType-6]
-	_ = x[NodeValue-7]
-	_ = x[NodeVar-8]
+	_ = x[NodeCase-4]
+	_ = x[NodeFun-5]
+	_ = x[NodeGet-6]
+	_ = x[NodeSwitch-7]
+	_ = x[NodeToken-8]
+	_ = x[NodeType-9]
+	_ = x[NodeValue-10]
+	_ = x[NodeVar-11]
 }
 
-const _NodeKind_name = "NodeNoneNodeArgsNodeBlockNodeCallNodeFunNodeTokenNodeTypeNodeValueNodeVar"
+const _NodeKind_name = "NodeNoneNodeArgsNodeBlockNodeCallNodeCaseNodeFunNodeGetNodeSwitchNodeTokenNodeTypeNodeValueNodeVar"
 
-var _NodeKind_index = [...]uint8{0, 8, 16, 25, 33, 40, 49, 57, 66, 73}
+var _NodeKind_index = [...]uint8{0, 8, 16, 25, 33, 41, 48, 55, 65, 74, 82, 91, 98}
 
 func (i NodeKind) String() string {
 	idx := int(i) - 0

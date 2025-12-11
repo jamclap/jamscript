@@ -34,6 +34,7 @@ func (e *Engine) Process(source string) *Module {
 	}
 	// module.Print()
 	e.analyze(module)
+	// module.Print()
 	return module
 }
 

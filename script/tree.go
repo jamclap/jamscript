@@ -35,9 +35,16 @@ func (b *Block) Idx() int {
 }
 
 type Call struct {
-	Index  int
+	NodeInfo
 	Callee Node
 	Args   []Node
+}
+
+type Case struct {
+	NodeInfo
+	Matches []Node
+	Gate    Node
+	Kids    []Node
 }
 
 type Def struct {
@@ -52,6 +59,18 @@ type Fun struct {
 	Type    FunType
 	Params  []Node // always *Var
 	RetSpec Node
+	Kids    []Node
+}
+
+type Get struct {
+	NodeInfo
+	Subject Node
+	Member  Node
+}
+
+type Switch struct {
+	NodeInfo
+	Subject Node
 	Kids    []Node
 }
 
@@ -102,7 +121,10 @@ const (
 	NodeArgs
 	NodeBlock
 	NodeCall
+	NodeCase
 	NodeFun
+	NodeGet
+	NodeSwitch
 	NodeToken
 	NodeType
 	NodeValue
@@ -162,6 +184,15 @@ func (p *treePrinting) printAt(indent int, node Node) {
 			p.printAt(indent, a)
 		}
 		print(")")
+	case *Case:
+		print("case")
+		for i, m := range n.Matches {
+			if i > 0 {
+				print(", ")
+			}
+			p.printAt(indent, m)
+		}
+		p.printKids(indent, n.Kids)
 	case *Fun:
 		if n.Flags&NodeFlagPub > 0 {
 			print("pub ")
@@ -183,15 +214,13 @@ func (p *treePrinting) printAt(indent int, node Node) {
 		}
 		print(")")
 		p.printType(n.Type.RetType)
-		println()
-		nextIndent := indent + 1
-		for _, kid := range n.Kids {
-			PrintIndent(nextIndent)
-			p.printAt(nextIndent, kid)
-			println()
-		}
+		p.printKids(indent, n.Kids)
 		PrintIndent(indent)
 		print("end")
+	case *Get:
+		p.printAt(indent, n.Subject)
+		print(".")
+		p.printAt(indent, n.Member)
 	case *TokenNode:
 		switch n.Kind {
 		case TokenStringText:
@@ -208,10 +237,40 @@ func (p *treePrinting) printAt(indent int, node Node) {
 			print(d.Name)
 			fmt.Printf("@%d", d.Index)
 		}
+	case *Switch:
+		print("switch")
+		if n.Subject != nil {
+			p.printAt(indent, n.Subject)
+		}
+		p.printKids(indent, n.Kids)
+		PrintIndent(indent)
+		print("end")
+	case *Value:
+		switch v := n.Value.(type) {
+		case string:
+			PrintEscapedString(v)
+		default:
+			fmt.Printf("%v", n.Value)
+		}
 	case *Var:
-		print("var")
+		print("var ")
+		print(n.Name)
 		fmt.Printf("@%d", n.Index)
 		p.printType(n.Type)
+		if n.Value != 0 {
+			print(" = ")
+			p.printAt(indent, n.Value)
+		}
+	}
+}
+
+func (p *treePrinting) printKids(indent int, kids []Node) {
+	println()
+	nextIndent := indent + 1
+	for _, kid := range kids {
+		PrintIndent(nextIndent)
+		p.printAt(nextIndent, kid)
+		println()
 	}
 }
 
@@ -256,13 +315,16 @@ type treeBuilder struct {
 	infos    []NodeInfo // Same length as nodes.
 	blocks   []inBlock
 	calls    []inCall
+	cases    []inCase
 	funs     []inFun
+	gets     []inGet
 	tokens   []Token
 	values   []any
 	vars     []inVar // TODO Also workVars for contiguous params?
 	work     []inNode
 	workInfo []NodeInfo // Same length as work.
 	source   Source
+	switches []inSwitch
 }
 
 type inNode struct {
@@ -279,6 +341,12 @@ type inCall struct {
 	args   Range[inNode]
 }
 
+type inCase struct {
+	matches Range[inNode]
+	gate    Idx[inNode]
+	kids    Range[inNode]
+}
+
 type inFun struct {
 	Def
 	params Range[inNode]
@@ -286,19 +354,33 @@ type inFun struct {
 	kids Range[inNode]
 }
 
+type inGet struct {
+	subject Idx[inNode]
+	member  Idx[inNode]
+}
+
+type inSwitch struct {
+	subject Idx[inNode]
+	kids    Range[inNode]
+}
+
 type inVar struct {
 	Def
-	// typeInfo Idx[inNode]
+	typ   Idx[inNode]
+	value Idx[inNode]
 }
 
 func newTreeBuilder() treeBuilder {
 	// Init some with bogus at index 0 so valid are always nonzero.
 	return treeBuilder{
-		nodes:  make([]inNode, 1),
-		infos:  make([]NodeInfo, 1),
-		blocks: make([]inBlock, 1),
-		funs:   make([]inFun, 1),
-		vars:   make([]inVar, 1),
+		nodes:    make([]inNode, 1),
+		infos:    make([]NodeInfo, 1),
+		cases:    make([]inCase, 1),
+		blocks:   make([]inBlock, 1),
+		funs:     make([]inFun, 1),
+		gets:     make([]inGet, 1),
+		switches: make([]inSwitch, 1),
+		vars:     make([]inVar, 1),
 	}
 }
 
@@ -308,9 +390,12 @@ func (b *treeBuilder) reset() {
 	b.nodes = b.nodes[:1]
 	b.infos = b.infos[:1]
 	b.blocks = b.blocks[:1]
+	b.cases = b.cases[:1]
 	b.funs = b.funs[:1]
+	b.gets = b.gets[:1]
 	b.vars = b.vars[:1]
-	// Start at 0.
+	b.switches = b.switches[:1]
+	// Start at 0. TODO Should these start at 1 also?
 	b.calls = b.calls[:0]
 	b.tokens = b.tokens[:0]
 	b.work = b.work[:0]
@@ -332,8 +417,11 @@ func (b *treeBuilder) toTree() *Module {
 	sources := make([]Source, len(b.nodes))
 	blocks := make([]Block, len(b.blocks))
 	calls := make([]Call, len(b.calls))
+	cases := make([]Case, len(b.cases))
 	funs := make([]Fun, len(b.funs))
+	gets := make([]Get, len(b.gets))
 	tokens := make([]TokenNode, len(b.tokens))
+	switches := make([]Switch, len(b.switches))
 	values := make([]Value, len(b.values))
 	vars := make([]Var, len(b.vars))
 	for i, node := range b.nodes {
@@ -342,8 +430,14 @@ func (b *treeBuilder) toTree() *Module {
 			nodes[i] = &blocks[node.index]
 		case NodeCall:
 			nodes[i] = &calls[node.index]
+		case NodeCase:
+			nodes[i] = &cases[node.index]
 		case NodeFun:
 			nodes[i] = &funs[node.index]
+		case NodeGet:
+			nodes[i] = &gets[node.index]
+		case NodeSwitch:
+			nodes[i] = &switches[node.index]
 		case NodeToken:
 			nodes[i] = &tokens[node.index]
 		case NodeValue:
@@ -364,11 +458,30 @@ func (b *treeBuilder) toTree() *Module {
 			Args:   Slice(c.args, nodes),
 		}
 	}
+	for i, c := range b.cases {
+		cases[i] = Case{
+			Matches: Slice(c.matches, nodes),
+			Gate:    nodes[c.gate],
+			Kids:    Slice(c.kids, nodes),
+		}
+	}
 	for i, f := range b.funs {
 		funs[i] = Fun{
 			Def:    f.Def,
 			Params: Slice(f.params, nodes),
 			Kids:   Slice(f.kids, nodes),
+		}
+	}
+	for i, g := range b.gets {
+		gets[i] = Get{
+			Subject: nodes[g.subject],
+			Member:  nodes[g.member],
+		}
+	}
+	for i, s := range b.switches {
+		switches[i] = Switch{
+			Subject: nodes[s.subject],
+			Kids:    Slice(s.kids, nodes),
 		}
 	}
 	for i, tok := range b.tokens {
@@ -383,7 +496,8 @@ func (b *treeBuilder) toTree() *Module {
 	}
 	for i, v := range b.vars {
 		vars[i] = Var{
-			Def: v.Def,
+			Def:   v.Def,
+			Value: nodes[v.value],
 		}
 	}
 	for i, node := range b.nodes {
@@ -394,9 +508,18 @@ func (b *treeBuilder) toTree() *Module {
 		case NodeCall:
 			c := &calls[node.index]
 			c.Index = i
+		case NodeCase:
+			c := &cases[node.index]
+			c.Index = i
 		case NodeFun:
 			f := &funs[node.index]
 			f.Index = i
+		case NodeGet:
+			g := &gets[node.index]
+			g.Index = i
+		case NodeSwitch:
+			s := &switches[node.index]
+			s.Index = i
 		case NodeToken:
 			tok := &tokens[node.index]
 			tok.Index = i
@@ -422,17 +545,18 @@ func (b *treeBuilder) toTree() *Module {
 	}
 }
 
-func (b *treeBuilder) commit(parent inNode, start int) {
-	// oldLen := len(b.nodes)
+func (b *treeBuilder) commitHeadless(start int) {
 	b.nodes = append(b.nodes, b.work[start:]...)
 	b.infos = append(b.infos, b.workInfo[start:]...)
-	// parent := inParseNode{
-	// 	kind: kind,
-	// 	kids: Range[inParseNode]{Start: oldLen, End: len(p.nodes)},
-	// }
+	b.work = b.work[:start]
+	b.workInfo = b.workInfo[:start]
+}
+
+func (b *treeBuilder) commit(parent inNode, start int) {
+	b.commitHeadless(start)
 	// TODO Update source during work.
-	b.work = append(b.work[:start], parent)
-	b.workInfo = append(b.workInfo[:start], NodeInfo{Source: b.source})
+	b.work = append(b.work, parent)
+	b.workInfo = append(b.workInfo, NodeInfo{Source: b.source})
 }
 
 func (b *treeBuilder) commitBlock(start int) {
@@ -444,14 +568,24 @@ func (b *treeBuilder) commitBlock(start int) {
 	)
 }
 
+func (b *treeBuilder) latest(start int, latestStart int) Idx[inNode] {
+	latestEnd := len(b.work)
+	switch {
+	case latestEnd > latestStart:
+		return Idx[inNode](len(b.nodes) + latestEnd - start)
+	default:
+		return 0
+	}
+}
+
 func (b *treeBuilder) popWork() {
 	pop(&b.work)
 	pop(&b.workInfo)
 }
 
-func (b *treeBuilder) popWorkBlock() inBlock {
+func (b *treeBuilder) popWorkBlock() Range[inNode] {
 	b.popWork()
-	return pop(&b.blocks)
+	return pop(&b.blocks).kids
 }
 
 func (b *treeBuilder) pushWork(node inNode) {
