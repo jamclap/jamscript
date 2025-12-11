@@ -2,7 +2,6 @@ package script
 
 import (
 	"fmt"
-	"log"
 )
 
 func (p *parser) Parse(tokens []Token) ParseNode {
@@ -75,7 +74,7 @@ func (n ParseNode) ExpectToken(start int, kind TokenKind) int {
 		return next
 	}
 	// TODO Record error.
-	log.Printf("Bad kid: %s %s\n", kid.Kind, kid.Token.Kind)
+	// log.Printf("Bad kid: %s %s\n", kid.Kind, kid.Token.Kind)
 	return len(n.Kids)
 }
 
@@ -321,13 +320,18 @@ func (p *parser) parseCall() {
 func (p *parser) parseCase(t Token) {
 	start := len(p.work)
 	p.pushToken(t)
-	// TODO More elaborate cases.
+	// Patterns.
+	patternsStart := len(p.work)
 	p.parseExpr()
+	// TODO Multiple patterns separated by comma.
+	p.commit(ParseArgs, patternsStart)
+	// Finish.
 	p.parseCaseFinish()
 	p.commit(ParseCase, start)
 }
 
 func (p *parser) parseCaseFinish() {
+	start := len(p.work)
 	if t := p.peek(); t.Kind == TokenThen {
 		p.pushToken(t)
 	}
@@ -347,6 +351,7 @@ func (p *parser) parseCaseFinish() {
 	default:
 		p.parseExpr()
 	}
+	p.commit(ParseBlock, start)
 }
 
 func (p *parser) parseCompare() {

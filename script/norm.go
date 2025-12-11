@@ -131,11 +131,34 @@ func (b *treeBuilder) normCall(p ParseNode) {
 }
 
 func (b *treeBuilder) normCase(p ParseNode) {
-	// panic("unimplemented")
+	c := inCase{}
+	next := p.ExpectToken(0, TokenCase)
+	next, part := p.Next(next)
+	if part.Kind == ParseArgs {
+		b.normArgs(part)
+		c.patterns = b.popWorkBlock()
+		next, part = p.Next(next)
+	}
+	if part.Kind == ParseBlock {
+		b.normBlock(part)
+		c.kids = b.popWorkBlock()
+		_, part = p.Next(next)
+	}
+	b.pushWork(inNode{kind: NodeCase, index: len(b.cases)})
+	b.cases = append(b.cases, c)
 }
 
 func (b *treeBuilder) normElse(p ParseNode) {
-	// panic("unimplemented")
+	c := inCase{always: true}
+	next := p.ExpectToken(0, TokenElse)
+	next, part := p.Next(next)
+	if part.Kind == ParseBlock {
+		b.normBlock(part)
+		c.kids = b.popWorkBlock()
+		_, part = p.Next(next)
+	}
+	b.pushWork(inNode{kind: NodeCase, index: len(b.cases)})
+	b.cases = append(b.cases, c)
 }
 
 func (b *treeBuilder) normFun(p ParseNode) {

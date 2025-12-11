@@ -42,9 +42,10 @@ type Call struct {
 
 type Case struct {
 	NodeInfo
-	Matches []Node
-	Gate    Node
-	Kids    []Node
+	Always   bool
+	Patterns []Node
+	Gate     Node
+	Kids     []Node
 }
 
 type Def struct {
@@ -185,14 +186,19 @@ func (p *treePrinting) printAt(indent int, node Node) {
 		}
 		print(")")
 	case *Case:
-		print("case")
-		for i, m := range n.Matches {
+		switch {
+		case n.Always:
+			print("else")
+		default:
+			print("case")
+		}
+		for i, m := range n.Patterns {
 			if i > 0 {
 				print(", ")
 			}
 			p.printAt(indent, m)
 		}
-		p.printKids(indent, n.Kids)
+		p.printKids(indent, n.Kids, true)
 	case *Fun:
 		if n.Flags&NodeFlagPub > 0 {
 			print("pub ")
@@ -214,7 +220,7 @@ func (p *treePrinting) printAt(indent int, node Node) {
 		}
 		print(")")
 		p.printType(n.Type.RetType)
-		p.printKids(indent, n.Kids)
+		p.printKids(indent, n.Kids, false)
 		PrintIndent(indent)
 		print("end")
 	case *Get:
@@ -242,7 +248,7 @@ func (p *treePrinting) printAt(indent int, node Node) {
 		if n.Subject != nil {
 			p.printAt(indent, n.Subject)
 		}
-		p.printKids(indent, n.Kids)
+		p.printKids(indent, n.Kids, false)
 		PrintIndent(indent)
 		print("end")
 	case *Value:
@@ -264,13 +270,15 @@ func (p *treePrinting) printAt(indent int, node Node) {
 	}
 }
 
-func (p *treePrinting) printKids(indent int, kids []Node) {
+func (p *treePrinting) printKids(indent int, kids []Node, endless bool) {
 	println()
 	nextIndent := indent + 1
-	for _, kid := range kids {
+	for i, kid := range kids {
 		PrintIndent(nextIndent)
 		p.printAt(nextIndent, kid)
-		println()
+		if !endless || i < len(kids)-1 {
+			println()
+		}
 	}
 }
 
@@ -342,9 +350,10 @@ type inCall struct {
 }
 
 type inCase struct {
-	matches Range[inNode]
-	gate    Idx[inNode]
-	kids    Range[inNode]
+	always   bool // true for else rather than case
+	patterns Range[inNode]
+	gate     Idx[inNode]
+	kids     Range[inNode]
 }
 
 type inFun struct {
@@ -460,9 +469,10 @@ func (b *treeBuilder) toTree() *Module {
 	}
 	for i, c := range b.cases {
 		cases[i] = Case{
-			Matches: Slice(c.matches, nodes),
-			Gate:    nodes[c.gate],
-			Kids:    Slice(c.kids, nodes),
+			Always:   c.always,
+			Patterns: Slice(c.patterns, nodes),
+			Gate:     nodes[c.gate],
+			Kids:     Slice(c.kids, nodes),
 		}
 	}
 	for i, f := range b.funs {
