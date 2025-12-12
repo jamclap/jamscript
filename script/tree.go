@@ -20,7 +20,9 @@ type Idx[T any] int
 type NodeFlags uint32
 
 const (
-	NodeFlagPlug NodeFlags = 1 << iota
+	NodeFlagCapture NodeFlags = 1 << iota
+	NodeFlagGlobal
+	NodeFlagPlug
 	NodeFlagPub
 	NodeFlagNone NodeFlags = 0
 )
@@ -225,9 +227,7 @@ func (p *treePrinting) printAt(indent int, node Node) {
 			if i > 0 {
 				print(", ")
 			}
-			v := vnode.(*Var)
-			print(v.Name)
-			fmt.Printf("@%d", v.Index)
+			p.printVar(vnode.(*Var), indent)
 		}
 		print(")")
 		p.printType(n.Type.RetType)
@@ -285,13 +285,7 @@ func (p *treePrinting) printAt(indent int, node Node) {
 		}
 	case *Var:
 		print("var ")
-		print(n.Name)
-		fmt.Printf("@%d", n.Index)
-		p.printType(n.Type)
-		if n.Value != 0 {
-			print(" = ")
-			p.printAt(indent, n.Value)
-		}
+		p.printVar(n, indent)
 	}
 }
 
@@ -313,6 +307,16 @@ func (p *treePrinting) printType(t Type) {
 		print(" Unknown")
 	default:
 		print(" SomeType")
+	}
+}
+
+func (p *treePrinting) printVar(n *Var, indent int) {
+	print(n.Name)
+	fmt.Printf("@(%d,%d)", n.Index, n.Offset)
+	p.printType(n.Type)
+	if n.Value != nil {
+		print(" = ")
+		p.printAt(indent, n.Value)
 	}
 }
 

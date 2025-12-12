@@ -4,8 +4,9 @@ func (r *resolver) Resolve(m *Module) {
 	if m.Tops == nil {
 		m.Tops = make(map[string]Node)
 	}
-	r.tops = m.Tops
+	r.levels = append(r.levels[:0], 0)
 	r.scope = r.scope[:0]
+	r.tops = m.Tops
 	r.resolveRoot(m.Root.(*Block))
 }
 
@@ -15,9 +16,22 @@ type Pair[A, B any] struct {
 }
 
 type resolver struct {
-	core  map[string]Node
-	scope []Pair[string, Node]
-	tops  map[string]Node
+	core   map[string]Node
+	levels []int // Indices into scope. TODO Make this tracking a different pass for less repeat?
+	scope  []Pair[string, Node]
+	tops   map[string]Node
+}
+
+func (r *resolver) popLevel() int {
+	start := *last(&r.levels)
+	pop(&r.levels)
+	size := len(r.scope) - start
+	r.scope = r.scope[:start]
+	return size
+}
+
+func (r *resolver) pushLevel() {
+	r.levels = append(r.levels, len(r.scope))
 }
 
 func (r *resolver) resolveRoot(root *Block) {
@@ -50,9 +64,9 @@ Tops:
 	for i, kid := range root.Kids {
 		switch k := kid.(type) {
 		case *Fun:
-			r.resolveFun(k, true)
+			r.resolveFun(k)
 		case *Var:
-			r.resolveVar(k, true)
+			r.resolveVar(k)
 		default:
 			r.resolveNode(&root.Kids[i])
 		}
@@ -60,11 +74,11 @@ Tops:
 }
 
 func (r *resolver) resolveBlock(b *Block) {
-	start := len(r.scope)
+	r.pushLevel()
 	for i := range b.Kids {
 		r.resolveNode(&b.Kids[i])
 	}
-	r.scope = r.scope[:start]
+	r.popLevel()
 }
 
 func (r *resolver) resolveCall(c *Call) {
@@ -75,6 +89,7 @@ func (r *resolver) resolveCall(c *Call) {
 }
 
 func (r *resolver) resolveCase(c *Case) {
+	r.pushLevel()
 	// TODO Vars introduced in pattern matching.
 	for _, pattern := range c.Patterns {
 		r.resolveNode(&pattern)
@@ -83,20 +98,21 @@ func (r *resolver) resolveCase(c *Case) {
 	for _, kid := range c.Kids {
 		r.resolveNode(&kid)
 	}
+	r.popLevel()
 }
 
-func (r *resolver) resolveFun(f *Fun, atTop bool) {
-	if !atTop {
+func (r *resolver) resolveFun(f *Fun) {
+	if len(r.levels) > 1 {
 		r.scope = append(r.scope, Pair[string, Node]{f.Name, f})
 	}
-	start := len(r.scope)
+	r.pushLevel()
 	for _, p := range f.Params {
 		r.resolveNode(&p)
 	}
 	for i := range f.Kids {
 		r.resolveNode(&f.Kids[i])
 	}
-	r.scope = r.scope[:start]
+	f.Size = r.popLevel()
 }
 
 func (r *resolver) resolveGet(g *Get) {
@@ -113,7 +129,7 @@ func (r *resolver) resolveNode(node *Node) {
 	case *Case:
 		r.resolveCase(n)
 	case *Fun:
-		r.resolveFun(n, false)
+		r.resolveFun(n)
 	case *Get:
 		r.resolveGet(n)
 	case *Return:
@@ -123,7 +139,7 @@ func (r *resolver) resolveNode(node *Node) {
 	case *TokenNode:
 		r.resolveToken(node, n)
 	case *Var:
-		r.resolveVar(n, false)
+		r.resolveVar(n)
 	}
 }
 
@@ -165,8 +181,9 @@ func (r *resolver) resolveToken(node *Node, t *TokenNode) {
 	}
 }
 
-func (r *resolver) resolveVar(v *Var, atTop bool) {
-	if !atTop {
+func (r *resolver) resolveVar(v *Var) {
+	if len(r.levels) > 1 {
+		v.Offset = len(r.scope) - *last(&r.levels)
 		r.scope = append(r.scope, Pair[string, Node]{v.Name, v})
 	}
 	r.resolveNode(&v.TypeSpec)
