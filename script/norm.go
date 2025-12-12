@@ -74,8 +74,17 @@ func (b *treeBuilder) normNodeCommit(p ParseNode) Idx[inNode] {
 }
 
 func (b *treeBuilder) normArgs(p ParseNode) {
-	start := len(b.work)
 	next := p.ExpectToken(0, TokenRoundOpen)
+	part, next := b.normArgItems(p, next)
+	if part.Token.Kind != TokenRoundClose {
+		// log.Printf("Unexpected: %v\n", part)
+	}
+	_, part = p.Next(next)
+	b.expectNone(part)
+}
+
+func (b *treeBuilder) normArgItems(p ParseNode, next int) (ParseNode, int) {
+	start := len(b.work)
 	part := ParseNode{}
 Args:
 	for {
@@ -95,12 +104,8 @@ Args:
 		}
 		b.normNode(part)
 	}
-	if part.Token.Kind != TokenRoundClose {
-		// log.Printf("Unexpected: %v\n", part)
-	}
-	_, part = p.Next(next)
-	b.expectNone(part)
 	b.commitBlock(start)
+	return part, next
 }
 
 func (b *treeBuilder) normBlock(p ParseNode) {
@@ -135,7 +140,7 @@ func (b *treeBuilder) normCase(p ParseNode) {
 	next := p.ExpectToken(0, TokenCase)
 	next, part := p.Next(next)
 	if part.Kind == ParseArgs {
-		b.normArgs(part)
+		b.normArgItems(part, 0)
 		c.patterns = b.popWorkBlock()
 		next, part = p.Next(next)
 	}
@@ -189,7 +194,42 @@ func (b *treeBuilder) normFun(p ParseNode) {
 }
 
 func (b *treeBuilder) normInfix(p ParseNode) {
-	// panic("unimplemented")
+	start := len(b.work)
+	call := inCall{}
+	// Call a get node.
+	get := inGet{}
+	next, subject := p.Next(0)
+	get.subject = b.normNodeCommit(subject)
+	next, op := p.Next(next)
+	// Make a token for an operator method name.
+	token := Token{Kind: TokenId}
+	switch op.Token.Kind {
+	case TokenGt:
+		token.Text = "gt"
+	case TokenLt:
+		token.Text = "lt"
+	default:
+		token.Kind = TokenNone
+	}
+	if token.Kind == TokenId {
+		b.pushWork(inNode{kind: NodeToken, index: len(b.tokens)})
+		b.tokens = append(b.tokens, token)
+		b.commitHeadless(start)
+		get.member = Idx[inNode](len(b.nodes) - 1)
+	}
+	// Commit the get.
+	b.commit(inNode{kind: NodeGet, index: len(b.gets)}, start)
+	b.gets = append(b.gets, get)
+	b.commitHeadless(start)
+	call.callee = Idx[inNode](len(b.nodes) - 1)
+	// Get the other operand as a method arg.
+	_, other := p.Next(next)
+	b.normNode(other)
+	b.commitBlock(start)
+	call.args = b.popWorkBlock()
+	// Finish.
+	b.commit(inNode{kind: NodeCall, index: len(b.calls)}, start)
+	b.calls = append(b.calls, call)
 }
 
 func (b *treeBuilder) normJunk(p ParseNode) {

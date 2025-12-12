@@ -193,7 +193,10 @@ func (p *treePrinting) printAt(indent int, node Node) {
 			print("case")
 		}
 		for i, m := range n.Patterns {
-			if i > 0 {
+			switch i {
+			case 0:
+				print(" ")
+			default:
 				print(", ")
 			}
 			p.printAt(indent, m)

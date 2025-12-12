@@ -396,7 +396,6 @@ func (p *parser) parseFun(t Token) {
 func (p *parser) parseModify(t Token) {
 	start := len(p.work)
 	p.pushToken(t)
-	found := false
 Mods:
 	for p.has() {
 		t := p.peek()
@@ -405,13 +404,10 @@ Mods:
 		default:
 			break Mods
 		}
-		found = true
 		p.pushToken(t)
 	}
 	p.parseExpr()
-	if found {
-		p.commit(ParseModify, start)
-	}
+	p.commit(ParseModify, start)
 }
 
 func (p *parser) parseParam() {
