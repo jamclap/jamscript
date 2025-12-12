@@ -48,6 +48,8 @@ func (b *treeBuilder) normNode(p ParseNode) {
 		b.normParams(p)
 	case ParsePrefix:
 		b.normPrefix(p)
+	case ParseReturn:
+		b.normReturn(p)
 	case ParseString:
 		b.normString(p)
 	case ParseSwitch, ParseSwitchEmpty:
@@ -320,6 +322,16 @@ func (b *treeBuilder) normPrefix(p ParseNode) {
 		}
 	}
 	b.normNode(node)
+}
+
+func (b *treeBuilder) normReturn(p ParseNode) {
+	r := inReturn{}
+	next := p.ExpectToken(0, TokenReturn)
+	_, part := p.Next(next)
+	r.kind = TokenReturn
+	r.value = b.normNodeCommit(part)
+	b.pushWork(inNode{kind: NodeReturn, index: len(b.returns)})
+	b.returns = append(b.returns, r)
 }
 
 func (b *treeBuilder) normString(p ParseNode) {

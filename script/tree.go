@@ -80,6 +80,13 @@ type Ref struct {
 	Node Node
 }
 
+type Return struct {
+	NodeInfo
+	Kind  TokenKind
+	Label Node // Required for break.
+	Value Node
+}
+
 type Scope struct {
 	// TODO for []any, which should only store pointers to slices
 	Size int
@@ -125,6 +132,7 @@ const (
 	NodeCase
 	NodeFun
 	NodeGet
+	NodeReturn
 	NodeSwitch
 	NodeToken
 	NodeType
@@ -230,6 +238,20 @@ func (p *treePrinting) printAt(indent int, node Node) {
 		p.printAt(indent, n.Subject)
 		print(".")
 		p.printAt(indent, n.Member)
+	case *Return:
+		switch n.Kind {
+		case TokenBreak:
+			print("break")
+		case TokenContinue:
+			print("continue")
+		case TokenReturn:
+			print("return")
+		}
+		// TODO Label.
+		if n.Value != nil {
+			print(" ")
+			p.printAt(indent, n.Value)
+		}
 	case *TokenNode:
 		switch n.Kind {
 		case TokenStringText:
@@ -329,6 +351,7 @@ type treeBuilder struct {
 	cases    []inCase
 	funs     []inFun
 	gets     []inGet
+	returns  []inReturn
 	tokens   []Token
 	values   []any
 	vars     []inVar // TODO Also workVars for contiguous params?
@@ -371,6 +394,13 @@ type inGet struct {
 	member  Idx[inNode]
 }
 
+type inReturn struct {
+	subject Idx[inNode]
+	kind    TokenKind
+	label   Idx[inNode] // Required for break.
+	value   Idx[inNode]
+}
+
 type inSwitch struct {
 	subject Idx[inNode]
 	kids    Range[inNode]
@@ -391,6 +421,7 @@ func newTreeBuilder() treeBuilder {
 		blocks:   make([]inBlock, 1),
 		funs:     make([]inFun, 1),
 		gets:     make([]inGet, 1),
+		returns:  make([]inReturn, 1),
 		switches: make([]inSwitch, 1),
 		vars:     make([]inVar, 1),
 	}
@@ -405,6 +436,7 @@ func (b *treeBuilder) reset() {
 	b.cases = b.cases[:1]
 	b.funs = b.funs[:1]
 	b.gets = b.gets[:1]
+	b.returns = b.returns[:1]
 	b.vars = b.vars[:1]
 	b.switches = b.switches[:1]
 	// Start at 0. TODO Should these start at 1 also?
@@ -426,14 +458,14 @@ func (b *treeBuilder) toTree() *Module {
 	// log.Printf("tokens: %+v\n", b.tokens)
 	// log.Printf("vars: %+v\n", b.vars)
 	nodes := make([]Node, len(b.nodes))
-	sources := make([]Source, len(b.nodes))
 	blocks := make([]Block, len(b.blocks))
 	calls := make([]Call, len(b.calls))
 	cases := make([]Case, len(b.cases))
 	funs := make([]Fun, len(b.funs))
 	gets := make([]Get, len(b.gets))
-	tokens := make([]TokenNode, len(b.tokens))
+	returns := make([]Return, len(b.returns))
 	switches := make([]Switch, len(b.switches))
+	tokens := make([]TokenNode, len(b.tokens))
 	values := make([]Value, len(b.values))
 	vars := make([]Var, len(b.vars))
 	for i, node := range b.nodes {
@@ -448,6 +480,8 @@ func (b *treeBuilder) toTree() *Module {
 			nodes[i] = &funs[node.index]
 		case NodeGet:
 			nodes[i] = &gets[node.index]
+		case NodeReturn:
+			nodes[i] = &returns[node.index]
 		case NodeSwitch:
 			nodes[i] = &switches[node.index]
 		case NodeToken:
@@ -457,7 +491,6 @@ func (b *treeBuilder) toTree() *Module {
 		case NodeVar:
 			nodes[i] = &vars[node.index]
 		}
-		sources[i] = b.infos[i].Source
 	}
 	for i, b := range b.blocks {
 		blocks[i] = Block{
@@ -489,6 +522,13 @@ func (b *treeBuilder) toTree() *Module {
 		gets[i] = Get{
 			Subject: nodes[g.subject],
 			Member:  nodes[g.member],
+		}
+	}
+	for i, r := range b.returns {
+		returns[i] = Return{
+			Kind:  r.kind,
+			Label: nodes[r.label],
+			Value: nodes[r.value],
 		}
 	}
 	for i, s := range b.switches {
@@ -530,6 +570,9 @@ func (b *treeBuilder) toTree() *Module {
 		case NodeGet:
 			g := &gets[node.index]
 			g.Index = i
+		case NodeReturn:
+			r := &returns[node.index]
+			r.Index = i
 		case NodeSwitch:
 			s := &switches[node.index]
 			s.Index = i
@@ -543,7 +586,6 @@ func (b *treeBuilder) toTree() *Module {
 			v := &vars[node.index]
 			v.Index = i
 		}
-		sources[i] = b.infos[i].Source
 	}
 	// log.Printf("copy done\n")
 	// log.Printf("nodes: %+v\n", nodes)

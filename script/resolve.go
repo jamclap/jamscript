@@ -74,6 +74,17 @@ func (r *resolver) resolveCall(c *Call) {
 	}
 }
 
+func (r *resolver) resolveCase(c *Case) {
+	// TODO Vars introduced in pattern matching.
+	for _, pattern := range c.Patterns {
+		r.resolveNode(&pattern)
+	}
+	r.resolveNode(&c.Gate)
+	for _, kid := range c.Kids {
+		r.resolveNode(&kid)
+	}
+}
+
 func (r *resolver) resolveFun(f *Fun, atTop bool) {
 	if !atTop {
 		r.scope = append(r.scope, Pair[string, Node]{f.Name, f})
@@ -88,18 +99,43 @@ func (r *resolver) resolveFun(f *Fun, atTop bool) {
 	r.scope = r.scope[:start]
 }
 
+func (r *resolver) resolveGet(g *Get) {
+	r.resolveNode(&g.Subject)
+	// TODO Resolve member based on the type of subject.
+}
+
 func (r *resolver) resolveNode(node *Node) {
 	switch n := (*node).(type) {
 	case *Block:
 		r.resolveBlock(n)
 	case *Call:
 		r.resolveCall(n)
+	case *Case:
+		r.resolveCase(n)
 	case *Fun:
 		r.resolveFun(n, false)
+	case *Get:
+		r.resolveGet(n)
+	case *Return:
+		r.resolveReturn(n)
+	case *Switch:
+		r.resolveSwitch(n)
 	case *TokenNode:
 		r.resolveToken(node, n)
 	case *Var:
 		r.resolveVar(n, false)
+	}
+}
+
+func (r *resolver) resolveReturn(ret *Return) {
+	// TODO Resolve label?
+	r.resolveNode(&ret.Value)
+}
+
+func (r *resolver) resolveSwitch(s *Switch) {
+	r.resolveNode(&s.Subject)
+	for _, kid := range s.Kids {
+		r.resolveNode(&kid)
 	}
 }
 
@@ -133,5 +169,6 @@ func (r *resolver) resolveVar(v *Var, atTop bool) {
 	if !atTop {
 		r.scope = append(r.scope, Pair[string, Node]{v.Name, v})
 	}
-	// TODO Init value
+	r.resolveNode(&v.TypeSpec)
+	r.resolveNode(&v.Value)
 }
