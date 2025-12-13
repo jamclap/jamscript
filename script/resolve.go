@@ -17,7 +17,7 @@ type Pair[A, B any] struct {
 
 type resolver struct {
 	core   map[string]Node
-	levels []int // Indices into scope. TODO Make this tracking a different pass for less repeat?
+	levels []int // Indices into scope.
 	scope  []Pair[string, Node]
 	tops   map[string]Node
 }
@@ -105,6 +105,7 @@ func (r *resolver) resolveFun(f *Fun) {
 	if len(r.levels) > 1 {
 		r.scope = append(r.scope, Pair[string, Node]{f.Name, f})
 	}
+	f.Level = len(r.levels)
 	r.pushLevel()
 	for _, p := range f.Params {
 		r.resolveNode(&p)
@@ -183,6 +184,7 @@ func (r *resolver) resolveToken(node *Node, t *TokenNode) {
 
 func (r *resolver) resolveVar(v *Var) {
 	if len(r.levels) > 1 {
+		v.Level = len(r.levels) - 1
 		v.Offset = len(r.scope) - *last(&r.levels)
 		r.scope = append(r.scope, Pair[string, Node]{v.Name, v})
 	}

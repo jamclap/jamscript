@@ -59,6 +59,7 @@ type Fun struct {
 	NodeInfo
 	Def
 	Scope
+	Level   int
 	Type    FunType
 	Params  []Node // always *Var
 	RetSpec Node
@@ -110,6 +111,7 @@ type Var struct {
 	Type     Type
 	TypeSpec Node
 	Value    Node
+	Level    int
 	Offset   int
 }
 
@@ -220,7 +222,7 @@ func (p *treePrinting) printAt(indent int, node Node) {
 		if n.Name != "" {
 			fmt.Printf(" %s", n.Name)
 		}
-		fmt.Printf("@%d", n.Index)
+		fmt.Printf("@(%d,%d)", n.Index, n.Level)
 		// TODO If wide, print params on separate lines?
 		print("(")
 		for i, vnode := range n.Params {
@@ -312,7 +314,7 @@ func (p *treePrinting) printType(t Type) {
 
 func (p *treePrinting) printVar(n *Var, indent int) {
 	print(n.Name)
-	fmt.Printf("@(%d,%d)", n.Index, n.Offset)
+	fmt.Printf("@(%d,%d/%d)", n.Index, n.Level, n.Offset)
 	p.printType(n.Type)
 	if n.Value != nil {
 		print(" = ")
@@ -399,10 +401,9 @@ type inGet struct {
 }
 
 type inReturn struct {
-	subject Idx[inNode]
-	kind    TokenKind
-	label   Idx[inNode] // Required for break.
-	value   Idx[inNode]
+	kind  TokenKind
+	label Idx[inNode] // Required for break.
+	value Idx[inNode]
 }
 
 type inSwitch struct {

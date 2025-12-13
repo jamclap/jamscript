@@ -50,6 +50,7 @@ func (e *Engine) analyze(module *Module) {
 		// If stable, this shouldn't allocate more on each iteration.
 		e.resolver.Resolve(module)
 		e.typer.Type(module)
+		// TODO Include inlining/macro run phase in the loop?
 	}
 }
 
