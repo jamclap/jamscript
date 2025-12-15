@@ -59,3 +59,18 @@ func doLog(s string) {
 	// fmt.Fprintln(os.Stderr, s)
 	log.Println(s)
 }
+
+var intGt = &Fun{
+	Def: Def{
+		Name: "Int::gt",
+	},
+	// TODO Convert to int32 instead?
+	Kids: []Node{func(i, j int64) bool { return i > j }},
+}
+
+var intLt = &Fun{
+	Def: Def{
+		Name: "Int::lt",
+	},
+	Kids: []Node{func(i, j int64) bool { return i < j }},
+}

@@ -62,6 +62,8 @@ func (r *runner) runNode(node Node) any {
 	switch n := node.(type) {
 	case *Call:
 		return r.runCall(n)
+	case *Get:
+		return r.runGet(n)
 	case *Ref:
 		return r.runRef(n)
 	case *Return:
@@ -88,15 +90,23 @@ func (r *runner) runBlockKids(kids []Node) any {
 }
 
 func (r *runner) runCall(c *Call) any {
+	// fmt.Printf("args for f.Name: %v\n", f.Name)
+	stackStart := len(r.stack)
 	// println("call")
-	callee := r.runNode(c.Callee)
+	var callee any
+	switch calleeNode := c.Callee.(type) {
+	case *Get:
+		var subject any
+		subject, callee = r.runGetSplit(calleeNode)
+		r.stack = append(r.stack, subject)
+	default:
+		callee = r.runNode(c.Callee)
+	}
 	f, ok := callee.(*Fun)
 	if !ok {
 		log.Println("callee not fun")
 		return nil
 	}
-	// fmt.Printf("args for f.Name: %v\n", f.Name)
-	stackStart := len(r.stack)
 	// TODO How to handle nested funs and captures right?
 	for _, a := range c.Args {
 		r.stack = append(r.stack, r.runNode(a))
@@ -159,6 +169,36 @@ func (r *runner) runFun(f *Fun) any {
 	return nil
 }
 
+func (r *runner) runGet(g *Get) any {
+	subject, member := r.runGetSplit(g)
+	// TODO If member is a method, bind subject here?
+	_ = subject
+	return member
+}
+
+func (r *runner) runGetSplit(g *Get) (subject, member any) {
+	// fmt.Printf("n: %+v\n", g)
+	subject = r.runNode(g.Subject)
+	// TODO Pre-resolve members based on static type.
+	// fmt.Printf("subject: %+v %T\n", subject, subject)
+	switch subject.(type) {
+	case int64:
+		// fmt.Printf("int member: %+v %T\n", g.Member, g.Member)
+		switch m := g.Member.(type) {
+		case *TokenNode:
+			switch m.Text {
+			case "gt":
+				member = intGt
+			case "lt":
+				member = intLt
+			default:
+			}
+		}
+	default:
+	}
+	return
+}
+
 func (r *runner) runRef(ref *Ref) any {
 	switch d := ref.Node.(type) {
 	case *Fun:
@@ -182,7 +222,10 @@ func (r *runner) runReturn(ret *Return) any {
 
 func (r *runner) runSwitch(n *Switch) any {
 	subject := n.Subject
-	if subject != nil {
+	switch subject {
+	case nil:
+		subject = true
+	default:
 		log.Printf("support switch subject: %+v\n", subject)
 		return nil
 	}
@@ -199,7 +242,15 @@ Cases:
 		case c.Always:
 			matches = true
 		default:
-			// TODO Evaluate pattern
+		Patterns:
+			for _, p := range c.Patterns {
+				value := r.runNode(p)
+				if value == subject {
+					matches = true
+					break Patterns
+				}
+			}
+			// TODO Require guard also, if not nil.
 		}
 		if matches {
 			// println("matches")
