@@ -127,6 +127,22 @@ func (r *runner) runFun(f *Fun) any {
 		t := reflect.TypeOf(v)
 		if t.Kind() == reflect.Func {
 			switch f2 := v.(type) {
+			case func(int64, int64) bool:
+				if argCount != 2 {
+					log.Printf("bad args\n")
+					return nil
+				}
+				i, ok := r.stack[len(r.stack)-2].(int64)
+				if !ok {
+					log.Printf("bad args\n")
+					return nil
+				}
+				j, ok := r.stack[len(r.stack)-1].(int64)
+				if !ok {
+					log.Printf("bad args\n")
+					return nil
+				}
+				return f2(i, j)
 			case func(string):
 				if argCount != 1 {
 					log.Printf("bad args\n")
