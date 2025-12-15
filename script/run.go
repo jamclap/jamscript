@@ -35,12 +35,7 @@ type runner struct {
 }
 
 type runLevel struct {
-	rawLevel   int
 	stackStart int
-}
-
-func (r *runner) levelRaw() int {
-	return last(&r.levels).rawLevel
 }
 
 func (r *runner) levelStart() int {
@@ -54,11 +49,10 @@ func (r *runner) popLevel() {
 	// fmt.Printf("popLevel r.levels: %+v\n", r.levels)
 }
 
-func (r *runner) pushLevel(rawLevel, stackStart int) {
-	if rawLevel == 0 {
-		rawLevel = r.levelRaw() + 1
-	}
-	level := runLevel{rawLevel: rawLevel, stackStart: stackStart}
+func (r *runner) pushLevel(stackStart int) {
+	// TODO Track the statically outer function start for each nested fun?
+	// TODO Part of the state of the runtime closure object?
+	level := runLevel{stackStart: stackStart}
 	r.levels = append(r.levels, level)
 	// fmt.Printf("pushLevel r.levels: %+v %+v\n", r.levels, r.stack)
 }
@@ -84,14 +78,12 @@ func (r *runner) runNode(node Node) any {
 
 func (r *runner) runBlockKids(kids []Node) any {
 	var value any
-	r.pushLevel(0, len(r.stack))
 	for _, k := range kids {
 		value = r.runNode(k)
 		if r.returnKind != TokenNone {
 			return value
 		}
 	}
-	r.popLevel()
 	return value
 }
 
@@ -109,7 +101,7 @@ func (r *runner) runCall(c *Call) any {
 	for _, a := range c.Args {
 		r.stack = append(r.stack, r.runNode(a))
 	}
-	r.pushLevel(f.Level, stackStart)
+	r.pushLevel(stackStart)
 	// fmt.Printf("call f.Name: %v %v %+v\n", f.Name, stackStart, r.stack)
 	value := r.runFun(f)
 	r.popLevel()
@@ -172,10 +164,9 @@ func (r *runner) runRef(ref *Ref) any {
 	case *Fun:
 		return d
 	case *Var:
-		start := r.levels[len(r.levels)-1-(r.levelRaw()-d.Level)].stackStart
 		// fmt.Printf("d.Name: %v at %v+%v\n", d.Name, start, d.Offset)
 		// fmt.Printf("ref r.levels: %+v %+v\n", r.levels, r.stack)
-		value := r.stack[start+d.Offset]
+		value := r.stack[r.levelStart()+d.Offset]
 		// fmt.Printf("var value: %v\n", value)
 		return value
 	}
