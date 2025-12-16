@@ -65,12 +65,12 @@ var intGt = &Fun{
 		Name: "Int::gt",
 	},
 	// TODO Convert to int32 instead?
-	Kids: []Node{func(i, j int64) bool { return i > j }},
+	Kids: []Node{func(i, j int32) bool { return i > j }},
 }
 
 var intLt = &Fun{
 	Def: Def{
 		Name: "Int::lt",
 	},
-	Kids: []Node{func(i, j int64) bool { return i < j }},
+	Kids: []Node{func(i, j int32) bool { return i < j }},
 }

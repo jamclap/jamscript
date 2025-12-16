@@ -410,15 +410,14 @@ func (b *treeBuilder) normToken(p ParseNode) {
 	}
 }
 
-func (b *treeBuilder) normTokenInt(p ParseNode, scale int64) {
-	// Store up to 64 bits here, even if downsized later.
-	// TODO Downsize to 32 bits for interpreter?
-	i, err := strconv.ParseInt(p.Token.Text, 10, 64)
+func (b *treeBuilder) normTokenInt(p ParseNode, scale int32) {
+	// TODO Custom int parsing maybe.
+	i, err := strconv.ParseInt(p.Token.Text, 10, 32)
 	if err != nil {
 		// log.Printf("bad int: %v\n", i)
 	}
 	b.pushWork(inNode{kind: NodeValue, index: len(b.values)})
-	b.values = append(b.values, i*scale)
+	b.values = append(b.values, int32(i)*scale)
 }
 
 func (b *treeBuilder) normVar(p ParseNode) {

@@ -127,17 +127,17 @@ func (r *runner) runFun(f *Fun) any {
 		t := reflect.TypeOf(v)
 		if t.Kind() == reflect.Func {
 			switch f2 := v.(type) {
-			case func(int64, int64) bool:
+			case func(int32, int32) bool:
 				if argCount != 2 {
 					log.Printf("bad args\n")
 					return nil
 				}
-				i, ok := r.stack[len(r.stack)-2].(int64)
+				i, ok := r.stack[len(r.stack)-2].(int32)
 				if !ok {
 					log.Printf("bad args\n")
 					return nil
 				}
-				j, ok := r.stack[len(r.stack)-1].(int64)
+				j, ok := r.stack[len(r.stack)-1].(int32)
 				if !ok {
 					log.Printf("bad args\n")
 					return nil
@@ -198,7 +198,7 @@ func (r *runner) runGetSplit(g *Get) (subject, member any) {
 	// TODO Pre-resolve members based on static type.
 	// fmt.Printf("subject: %+v %T\n", subject, subject)
 	switch subject.(type) {
-	case int64:
+	case int32:
 		// fmt.Printf("int member: %+v %T\n", g.Member, g.Member)
 		switch m := g.Member.(type) {
 		case *TokenNode:
