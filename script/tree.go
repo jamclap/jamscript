@@ -303,8 +303,14 @@ func (p *treePrinting) printKids(indent int, kids []Node, endless bool) {
 
 func (p *treePrinting) printType(t Type) {
 	switch t {
-	case nil, TypeNone:
+	case nil:
 		print(" Unknown")
+	case TypeInt:
+		print(" Int")
+	case TypeNone:
+		print(" Invalid")
+	case TypeString:
+		print(" String")
 	default:
 		print(" SomeType")
 	}

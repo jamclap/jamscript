@@ -71,10 +71,17 @@ func (t *typer) typeNode(node Node, wanted Type) Type {
 		return t.typeBlock(n, wanted)
 	case *Call:
 		return t.typeCall(n, wanted)
+	case *Case:
+		return t.typeCase(n, wanted, nil)
 	case *Fun:
 		return t.typeFun(n, wanted)
+	case *Get:
+		// TODO Resolve on the spot for members?
+		// TODO Or retain subject type for later resolve?
 	case *Ref:
 		return t.typeRef(n, wanted)
+	case *Switch:
+		return t.typeSwitch(n, wanted)
 	case *TokenNode:
 		return t.typeToken(n, wanted)
 	case *Value:
@@ -86,11 +93,16 @@ func (t *typer) typeNode(node Node, wanted Type) Type {
 }
 
 func (t *typer) typeBlock(b *Block, wanted Type) Type {
+	return t.typeBlockKids(b.Kids, wanted)
+}
+
+func (t *typer) typeBlockKids(kids []Node, wanted Type) Type {
 	var typ Type = TypeVoid
 	var kidWanted Type
-	for i, n := range b.Kids {
+	for i, n := range kids {
 		// TODO Break with value, including labeled, complicates this.
-		if i == len(b.Kids)-1 {
+		// TODO Resolve break/return targets so we can directly assign there.
+		if i == len(kids)-1 {
 			kidWanted = wanted
 		}
 		typ = t.typeNode(n, kidWanted)
@@ -117,8 +129,18 @@ func (t *typer) typeCall(c *Call, wanted Type) Type {
 	return retType
 }
 
+func (t *typer) typeCase(c *Case, wanted Type, subjectWanted Type) Type {
+	for _, pattern := range c.Patterns {
+		t.typeNode(pattern, subjectWanted)
+	}
+	if c.Gate != nil {
+		t.typeNode(c.Gate, TypeBool)
+	}
+	return t.typeBlockKids(c.Kids, wanted)
+}
+
 func (t *typer) typeFun(f *Fun, wanted Type) Type {
-	// TODO If already typed, just fill in blanks?
+	// TODO If already typed, just fill in blanks.
 	// TODO Could we have blanks only in type parameters?
 	var retType Type
 	var wantedRetType Type
@@ -163,6 +185,26 @@ func (t *typer) typeRef(r *Ref, wanted Type) Type {
 	return nil
 }
 
+func (t *typer) typeSwitch(s *Switch, wanted Type) Type {
+	var typ Type
+	var subjectType Type = TypeBool
+	if s.Subject != nil {
+		subjectType = t.typeNode(s.Subject, nil)
+	}
+	for i, k := range s.Kids {
+		switch c := k.(type) {
+		case *Case:
+			caseType := t.typeCase(c, wanted, subjectType)
+			if i == 0 {
+				typ = caseType
+			}
+		default:
+			t.typeNode(c, nil)
+		}
+	}
+	return typ
+}
+
 func (t *typer) typeToken(tok *TokenNode, wanted Type) Type {
 	// TODO Use this for integer literals to find when float?
 	_ = tok
@@ -173,6 +215,8 @@ func (t *typer) typeToken(tok *TokenNode, wanted Type) Type {
 func (t *typer) typeValue(value *Value, wanted Type) Type {
 	_ = wanted
 	switch value.Value.(type) {
+	case int32:
+		return TypeInt
 	case string:
 		return TypeString
 	}
@@ -180,8 +224,43 @@ func (t *typer) typeValue(value *Value, wanted Type) Type {
 }
 
 func (t *typer) typeVar(v *Var, wanted Type) Type {
-	// TODO Resolve type spec.
-	// TODO Type initializer.
-	v.Type = wanted
+	typ := v.Type
+	valueTyped := false
+	switch v.TypeSpec {
+	case nil:
+		switch v.Value {
+		case nil:
+			switch wanted {
+			case nil:
+				// TODO Prioritize vartype specs over defaults.
+				switch v.Name {
+				case "i", "j", "k", "l", "m", "n":
+					typ = TypeInt
+				case "w", "x", "y", "Z":
+					typ = TypeFloat
+				}
+			default:
+				typ = wanted
+			}
+		default:
+			typ = t.typeNode(v.Value, wanted)
+			valueTyped = true
+		}
+	default:
+		wantedTypeType := push(&t.typeTypes, TypeType{Type: wanted})
+		defer pop(&t.typeTypes)
+		typeType := t.typeNode(v.TypeSpec, wantedTypeType)
+		if typeType, ok := typeType.(*TypeType); ok {
+			typ = typeType.Type
+		}
+	}
+	if v.Type == nil {
+		// TODO Could we have blanks only in type parameters?
+		v.Type = typ
+	}
+	if v.Value != nil && !valueTyped {
+		t.typeNode(v.Value, v.Type)
+	}
+	// The var declaration itself is type nil.
 	return nil
 }
