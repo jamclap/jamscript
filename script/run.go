@@ -196,7 +196,7 @@ func (r *runner) runGet(g *Get) any {
 }
 
 func (r *runner) runRef(ref *Ref) any {
-	switch d := ref.Node.(type) {
+	switch d := ref.Target.(type) {
 	case *Fun:
 		return d
 	case *Var:

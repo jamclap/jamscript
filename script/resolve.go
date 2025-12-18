@@ -147,25 +147,23 @@ func (r *resolver) resolveNode(node *Node) {
 }
 
 func (r *resolver) resolveRef(n *Ref) {
-	name, ok := n.Node.(string)
-	if !ok {
-		// Presumably already resolved.
+	if n.Target != nil {
 		return
 	}
 	for i := len(r.scope) - 1; i >= 0; i-- {
 		pair := r.scope[i]
-		if pair.First == name {
-			n.Node = pair.Second
+		if pair.First == n.Name {
+			n.Target = pair.Second
 			return
 		}
 	}
-	if top, ok := r.tops[name]; ok {
-		n.Node = top
+	if top, ok := r.tops[n.Name]; ok {
+		n.Target = top
 		_ = top
 	}
-	if top, ok := r.core[name]; ok {
+	if top, ok := r.core[n.Name]; ok {
 		// TODO Force top-level defs for imports? Focus on qualified access too?
-		n.Node = top
+		n.Target = top
 		_ = top
 	}
 }

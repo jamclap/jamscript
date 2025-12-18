@@ -200,27 +200,30 @@ func (t *typer) typeGet(g *Get, wanted Type) Type {
 	subjectType := t.typeNode(g.Subject, nil)
 	switch m := g.Member.(type) {
 	case *Ref:
-		switch n := m.Node.(type) {
-		case string:
+		switch m.Target {
+		case nil:
 			switch subjectType {
 			case TypeInt:
 				subjectType = intType
 			}
 			switch record := subjectType.(type) {
 			case *Record:
-				if member, ok := record.MemberMap[n]; ok {
+				if member, ok := record.MemberMap[m.Name]; ok {
 					typ = t.typeNode(member, nil)
 					// fmt.Printf("typ: %v\n", typ)
-					m.Node = member
+					m.Target = member
 				}
 			}
 			// fmt.Printf("subjectType: %+v\n", subjectType)
 			// fmt.Printf("m: %v\n", m)
-		case *Fun:
-			// TODO Bound type, not raw.
-			typ = &n.Type
-		case *Var:
-			typ = n.Type
+		default:
+			switch n := m.Target.(type) {
+			case *Fun:
+				// TODO Bound type, not raw.
+				typ = &n.Type
+			case *Var:
+				typ = n.Type
+			}
 		}
 	}
 	return typ
@@ -235,7 +238,7 @@ func (t *typer) typeReturn(r *Return, wanted Type) Type {
 
 func (t *typer) typeRef(r *Ref, wanted Type) Type {
 	_ = wanted
-	switch n := r.Node.(type) {
+	switch n := r.Target.(type) {
 	case *Fun:
 		return &n.Type
 	case *Var:

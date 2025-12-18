@@ -87,7 +87,8 @@ type Switch struct {
 
 type Ref struct {
 	NodeInfo
-	Node Node
+	Name   string
+	Target Node
 }
 
 // TODO Rename to Break?
@@ -243,7 +244,7 @@ func (p *treePrinting) printAt(indent int, node Node) {
 		print(".")
 		p.printAt(indent, n.Member)
 	case *Ref:
-		switch r := n.Node.(type) {
+		switch r := n.Target.(type) {
 		case string:
 			print(r)
 		case *Fun:
@@ -360,7 +361,7 @@ type treeBuilder struct {
 	cases    []inCase
 	funs     []inFun
 	gets     []inGet
-	refs     []any
+	refs     []string
 	returns  []inReturn
 	values   []any
 	vars     []inVar // TODO Also workVars for contiguous params?
@@ -534,7 +535,7 @@ func (b *treeBuilder) toTree() *Module {
 	}
 	for i, ref := range b.refs {
 		refs[i] = Ref{
-			Node: ref,
+			Name: ref,
 		}
 	}
 	for i, r := range b.returns {
