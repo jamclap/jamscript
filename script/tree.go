@@ -103,11 +103,6 @@ type Scope struct {
 	Size int
 }
 
-type TokenNode struct {
-	NodeInfo
-	Token
-}
-
 type Value struct {
 	NodeInfo
 	Value any
@@ -143,9 +138,9 @@ const (
 	NodeCase
 	NodeFun
 	NodeGet
+	NodeRef
 	NodeReturn
 	NodeSwitch
-	NodeToken
 	NodeType
 	NodeValue
 	NodeVar
@@ -247,6 +242,17 @@ func (p *treePrinting) printAt(indent int, node Node) {
 		p.printAt(indent, n.Subject)
 		print(".")
 		p.printAt(indent, n.Member)
+	case *Ref:
+		switch r := n.Node.(type) {
+		case string:
+			print(r)
+		case *Fun:
+			print(r.Name)
+			fmt.Printf("@%d", r.Index)
+		case *Var:
+			print(r.Name)
+			fmt.Printf("@%d", r.Index)
+		}
 	case *Return:
 		switch n.Kind {
 		case TokenBreak:
@@ -260,22 +266,6 @@ func (p *treePrinting) printAt(indent int, node Node) {
 		if n.Value != nil {
 			print(" ")
 			p.printAt(indent, n.Value)
-		}
-	case *TokenNode:
-		switch n.Kind {
-		case TokenStringText:
-			PrintEscapedString(n.Text)
-		default:
-			print(n.Text)
-		}
-	case *Ref:
-		switch d := n.Node.(type) {
-		case *Fun:
-			print(d.Name)
-			fmt.Printf("@%d", d.Index)
-		case *Var:
-			print(d.Name)
-			fmt.Printf("@%d", d.Index)
 		}
 	case *Switch:
 		print("switch")
@@ -370,8 +360,8 @@ type treeBuilder struct {
 	cases    []inCase
 	funs     []inFun
 	gets     []inGet
+	refs     []any
 	returns  []inReturn
-	tokens   []Token
 	values   []any
 	vars     []inVar // TODO Also workVars for contiguous params?
 	work     []inNode
@@ -459,7 +449,7 @@ func (b *treeBuilder) reset() {
 	b.switches = b.switches[:1]
 	// Start at 0. TODO Should these start at 1 also?
 	b.calls = b.calls[:0]
-	b.tokens = b.tokens[:0]
+	b.refs = b.refs[:0]
 	b.work = b.work[:0]
 	b.workInfo = b.workInfo[:0]
 	b.source = Source{}
@@ -481,9 +471,9 @@ func (b *treeBuilder) toTree() *Module {
 	cases := make([]Case, len(b.cases))
 	funs := make([]Fun, len(b.funs))
 	gets := make([]Get, len(b.gets))
+	refs := make([]Ref, len(b.refs))
 	returns := make([]Return, len(b.returns))
 	switches := make([]Switch, len(b.switches))
-	tokens := make([]TokenNode, len(b.tokens))
 	values := make([]Value, len(b.values))
 	vars := make([]Var, len(b.vars))
 	for i, node := range b.nodes {
@@ -498,12 +488,12 @@ func (b *treeBuilder) toTree() *Module {
 			nodes[i] = &funs[node.index]
 		case NodeGet:
 			nodes[i] = &gets[node.index]
+		case NodeRef:
+			nodes[i] = &refs[node.index]
 		case NodeReturn:
 			nodes[i] = &returns[node.index]
 		case NodeSwitch:
 			nodes[i] = &switches[node.index]
-		case NodeToken:
-			nodes[i] = &tokens[node.index]
 		case NodeValue:
 			nodes[i] = &values[node.index]
 		case NodeVar:
@@ -542,6 +532,11 @@ func (b *treeBuilder) toTree() *Module {
 			Member:  nodes[g.member],
 		}
 	}
+	for i, ref := range b.refs {
+		refs[i] = Ref{
+			Node: ref,
+		}
+	}
 	for i, r := range b.returns {
 		returns[i] = Return{
 			Kind:   r.kind,
@@ -553,11 +548,6 @@ func (b *treeBuilder) toTree() *Module {
 		switches[i] = Switch{
 			Subject: nodes[s.subject],
 			Kids:    Slice(s.kids, nodes),
-		}
-	}
-	for i, tok := range b.tokens {
-		tokens[i] = TokenNode{
-			Token: tok,
 		}
 	}
 	for i, v := range b.values {
@@ -588,15 +578,15 @@ func (b *treeBuilder) toTree() *Module {
 		case NodeGet:
 			g := &gets[node.index]
 			g.Index = i
+		case NodeRef:
+			ref := &refs[node.index]
+			ref.Index = i
 		case NodeReturn:
 			r := &returns[node.index]
 			r.Index = i
 		case NodeSwitch:
 			s := &switches[node.index]
 			s.Index = i
-		case NodeToken:
-			tok := &tokens[node.index]
-			tok.Index = i
 		case NodeValue:
 			v := &values[node.index]
 			v.Index = i

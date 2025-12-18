@@ -120,6 +120,9 @@ func (r *resolver) resolveGet(g *Get) {
 	// TODO Resolve member based on the type of subject.
 }
 
+// We were passing around *Node instead of Node to replace with *Ref, but now
+// we just change the target node inside existing refs.
+// TODO Change to just Node here?
 func (r *resolver) resolveNode(node *Node) {
 	switch n := (*node).(type) {
 	case *Block:
@@ -132,14 +135,38 @@ func (r *resolver) resolveNode(node *Node) {
 		r.resolveFun(n)
 	case *Get:
 		r.resolveGet(n)
+	case *Ref:
+		r.resolveRef(n)
 	case *Return:
 		r.resolveReturn(n)
 	case *Switch:
 		r.resolveSwitch(n)
-	case *TokenNode:
-		r.resolveToken(node, n)
 	case *Var:
 		r.resolveVar(n)
+	}
+}
+
+func (r *resolver) resolveRef(n *Ref) {
+	name, ok := n.Node.(string)
+	if !ok {
+		// Presumably already resolved.
+		return
+	}
+	for i := len(r.scope) - 1; i >= 0; i-- {
+		pair := r.scope[i]
+		if pair.First == name {
+			n.Node = pair.Second
+			return
+		}
+	}
+	if top, ok := r.tops[name]; ok {
+		n.Node = top
+		_ = top
+	}
+	if top, ok := r.core[name]; ok {
+		// TODO Force top-level defs for imports? Focus on qualified access too?
+		n.Node = top
+		_ = top
 	}
 }
 
@@ -152,32 +179,6 @@ func (r *resolver) resolveSwitch(s *Switch) {
 	r.resolveNode(&s.Subject)
 	for _, kid := range s.Kids {
 		r.resolveNode(&kid)
-	}
-}
-
-func (r *resolver) resolveToken(node *Node, t *TokenNode) {
-	if t.Kind != TokenId {
-		return
-	}
-	info := t.NodeInfo
-	for i := len(r.scope) - 1; i >= 0; i-- {
-		pair := r.scope[i]
-		if pair.First == t.Text {
-			// TODO Store side table of resolutions for later bulkier allocation?
-			*node = &Ref{NodeInfo: info, Node: pair.Second}
-			return
-		}
-	}
-	if top, ok := r.tops[t.Text]; ok {
-		// TODO Store side table of resolutions for later bulkier allocation?
-		*node = &Ref{NodeInfo: info, Node: top}
-		_ = top
-	}
-	if top, ok := r.core[t.Text]; ok {
-		// TODO Store side table of resolutions for later bulkier allocation?
-		// TODO Force top-level defs for imports? Focus on qualified access too?
-		*node = &Ref{NodeInfo: info, Node: top}
-		_ = top
 	}
 }
 

@@ -88,8 +88,6 @@ func (t *typer) typeNode(node Node, wanted Type) Type {
 		return t.typeReturn(n, wanted)
 	case *Switch:
 		return t.typeSwitch(n, wanted)
-	case *TokenNode:
-		return t.typeToken(n, wanted)
 	case *Value:
 		return t.typeValue(n, wanted)
 	case *Var:
@@ -124,12 +122,14 @@ func (t *typer) typeCall(c *Call, wanted Type) Type {
 	wantedFunType := push(&t.funTypes, FunType{RetType: wanted})
 	defer pop(&t.funTypes)
 	calleeType := t.typeNode(c.Callee, wantedFunType)
+	// TODO If callee is a get, avoid binding of type?
 	var retType Type
 	funType, ok := calleeType.(*FunType)
 	if ok {
 		retType = funType.RetType
 	}
 	for i, a := range c.Args {
+		// TODO If avoid binding, skip first.
 		var paramType Type
 		if ok && i < len(funType.ParamTypes) {
 			paramType = funType.ParamTypes[i]
@@ -199,24 +199,29 @@ func (t *typer) typeGet(g *Get, wanted Type) Type {
 	var typ Type
 	subjectType := t.typeNode(g.Subject, nil)
 	switch m := g.Member.(type) {
-	case *TokenNode:
-		switch subjectType {
-		case TypeInt:
-			subjectType = intType
-		}
-		switch record := subjectType.(type) {
-		case *Record:
-			if member, ok := record.MemberMap[m.Text]; ok {
-				typ = t.typeNode(member, nil)
-				// fmt.Printf("typ: %v\n", typ)
-				// TODO How to avoid allocations here?
-				// TODO Make all nodes be plain structs with internal pointers?
-				// TODO And then cache Ref nodes for all functions and vars?
-				g.Member = &Ref{NodeInfo: m.NodeInfo, Node: member}
+	case *Ref:
+		switch n := m.Node.(type) {
+		case string:
+			switch subjectType {
+			case TypeInt:
+				subjectType = intType
 			}
+			switch record := subjectType.(type) {
+			case *Record:
+				if member, ok := record.MemberMap[n]; ok {
+					typ = t.typeNode(member, nil)
+					// fmt.Printf("typ: %v\n", typ)
+					m.Node = member
+				}
+			}
+			// fmt.Printf("subjectType: %+v\n", subjectType)
+			// fmt.Printf("m: %v\n", m)
+		case *Fun:
+			// TODO Bound type, not raw.
+			typ = &n.Type
+		case *Var:
+			typ = n.Type
 		}
-		// fmt.Printf("subjectType: %+v\n", subjectType)
-		// fmt.Printf("m: %v\n", m)
 	}
 	return typ
 }
@@ -257,13 +262,6 @@ func (t *typer) typeSwitch(s *Switch, wanted Type) Type {
 		}
 	}
 	return typ
-}
-
-func (t *typer) typeToken(tok *TokenNode, wanted Type) Type {
-	// TODO Use this for integer literals to find when float?
-	_ = tok
-	_ = wanted
-	return nil
 }
 
 func (t *typer) typeValue(value *Value, wanted Type) Type {

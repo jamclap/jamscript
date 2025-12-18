@@ -3,18 +3,16 @@ goos: windows
 goarch: amd64
 pkg: github.com/jamclap/jamscript
 cpu: Intel(R) Core(TM) 7 150U
-BenchmarkProcessBranch-12          28684             40720 ns/op           38626 B/op         50 allocs/op
-BenchmarkRunBranch-12            2157988               553.1 ns/op            64 B/op          4 allocs/op
-BenchmarkProcessExplore-12         10000            151130 ns/op          119902 B/op         39 allocs/op
-BenchmarkRunExplore-12          193730618                6.265 ns/op           0 B/op          0 allocs/op
-BenchmarkProcessHi-12              46024             24153 ns/op           25137 B/op         38 allocs/op
-BenchmarkRunHi-12                4662675               286.4 ns/op            64 B/op          4 allocs/op
+BenchmarkProcessBranch-12          35277             32464 ns/op           38178 B/op         50 allocs/op
+BenchmarkRunBranch-12            2218788               536.2 ns/op            64 B/op          4 allocs/op
+BenchmarkProcessExplore-12         12170             98844 ns/op          120331 B/op        114 allocs/op
+BenchmarkRunExplore-12          192112254                6.385 ns/op           0 B/op          0 allocs/op
+BenchmarkProcessHi-12              66688             17660 ns/op           24928 B/op         38 allocs/op
+BenchmarkRunHi-12                5100238               235.4 ns/op            64 B/op          4 allocs/op
 PASS
-ok      github.com/jamclap/jamscript    7.757s
-PS C:\Users\tjpal\projects\jamscript> ls .\target\jams.exe
-
-    Directory: C:\Users\tjpal\projects\jamscript\target
-
-Mode                 LastWriteTime         Length Name
-----                 -------------         ------ ----
--a---          12/17/2025  5:26 PM        1973632 jams.exe
+ok      github.com/jamclap/jamscript    8.095s
+PS C:\Users\tjpal\projects\jamscript> .\target\build && signtool sign /fd SHA256 /a target\jams.exe
+Build time: 0.63 s
+Size of target\jams.exe: 1960832 B or 1.87 MiB
+Done Adding Additional Store
+Successfully signed: target\jams.exe

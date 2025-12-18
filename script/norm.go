@@ -204,18 +204,16 @@ func (b *treeBuilder) normInfix(p ParseNode) {
 	get.subject = b.normNodeCommit(subject)
 	next, op := p.Next(next)
 	// Make a token for an operator method name.
-	token := Token{Kind: TokenId}
+	name := ""
 	switch op.Token.Kind {
 	case TokenGt:
-		token.Text = "gt"
+		name = "gt"
 	case TokenLt:
-		token.Text = "lt"
-	default:
-		token.Kind = TokenNone
+		name = "lt"
 	}
-	if token.Kind == TokenId {
-		b.pushWork(inNode{kind: NodeToken, index: len(b.tokens)})
-		b.tokens = append(b.tokens, token)
+	if name != "" {
+		b.pushWork(inNode{kind: NodeRef, index: len(b.refs)})
+		b.refs = append(b.refs, name)
 		b.commitHeadless(start)
 		get.member = Idx[inNode](len(b.nodes) - 1)
 	}
@@ -403,8 +401,8 @@ func RuneAt(s string, i int) rune {
 func (b *treeBuilder) normToken(p ParseNode) {
 	switch p.Token.Kind {
 	case TokenId:
-		b.pushWork(inNode{kind: NodeToken, index: len(b.tokens)})
-		b.tokens = append(b.tokens, p.Token)
+		b.pushWork(inNode{kind: NodeRef, index: len(b.refs)})
+		b.refs = append(b.refs, p.Token.Text)
 	case TokenInt:
 		b.normTokenInt(p, 1)
 	}
