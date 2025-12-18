@@ -2,6 +2,7 @@ package script
 
 import (
 	"fmt"
+	"io"
 )
 
 type Module struct {
@@ -158,145 +159,146 @@ type TreePrinterOptions struct {
 	// TODO Options
 }
 
-func (t *Module) Print() {
-	p := treePrinting{TreePrinter: TreePrinter{Tree: t}}
+func (t *Module) Print(w io.Writer) {
+	p := treePrinting{TreePrinter: TreePrinter{Tree: t}, w: w}
 	p.printAt(0, t.Root)
 }
 
 type treePrinting struct {
 	TreePrinter
+	w io.Writer
 }
 
 func (p *treePrinting) printAt(indent int, node Node) {
 	switch n := node.(type) {
 	case nil:
-		print("nil")
+		fmt.Fprint(p.w, "nil")
 	case *Block:
 		nextIndent := indent
 		atRoot := node == p.Tree.Root
 		if !atRoot {
-			println("then")
+			fmt.Fprintln(p.w, "then")
 			nextIndent++
 		}
 		for i, kid := range n.Kids {
 			if atRoot && i > 0 {
-				println()
+				fmt.Fprintln(p.w)
 			}
-			PrintIndent(nextIndent)
+			PrintIndent(p.w, nextIndent)
 			p.printAt(nextIndent, kid)
-			println()
+			fmt.Fprintln(p.w)
 		}
 		if !atRoot {
-			PrintIndent(indent)
-			print("end")
+			PrintIndent(p.w, indent)
+			fmt.Fprint(p.w, "end")
 		}
 	case *Call:
 		p.printAt(indent, n.Callee)
-		print("(")
+		fmt.Fprint(p.w, "(")
 		for i, a := range n.Args {
 			if i > 0 {
-				print(", ")
+				fmt.Fprint(p.w, ", ")
 			}
 			p.printAt(indent, a)
 		}
-		print(")")
+		fmt.Fprint(p.w, ")")
 	case *Case:
 		switch {
 		case n.Always:
-			print("else")
+			fmt.Fprint(p.w, "else")
 		default:
-			print("case")
+			fmt.Fprint(p.w, "case")
 		}
 		for i, m := range n.Patterns {
 			switch i {
 			case 0:
-				print(" ")
+				fmt.Fprint(p.w, " ")
 			default:
-				print(", ")
+				fmt.Fprint(p.w, ", ")
 			}
 			p.printAt(indent, m)
 		}
 		p.printKids(indent, n.Kids, true)
 	case *Fun:
 		if n.Flags&NodeFlagPub > 0 {
-			print("pub ")
+			fmt.Fprint(p.w, "pub ")
 		}
-		print("fun")
+		fmt.Fprint(p.w, "fun")
 		if n.Name != "" {
-			fmt.Printf(" %s", n.Name)
+			fmt.Fprintf(p.w, " %s", n.Name)
 		}
-		fmt.Printf("@%d", n.Index)
+		fmt.Fprintf(p.w, "@%d", n.Index)
 		// TODO If wide, print params on separate lines?
-		print("(")
+		fmt.Fprint(p.w, "(")
 		for i, vnode := range n.Params {
 			if i > 0 {
-				print(", ")
+				fmt.Fprint(p.w, ", ")
 			}
 			p.printVar(vnode.(*Var), indent)
 		}
-		print(")")
+		fmt.Fprint(p.w, ")")
 		p.printType(n.Type.RetType)
 		p.printKids(indent, n.Kids, false)
-		PrintIndent(indent)
-		print("end")
+		PrintIndent(p.w, indent)
+		fmt.Fprint(p.w, "end")
 	case *Get:
 		p.printAt(indent, n.Subject)
-		print(".")
+		fmt.Fprint(p.w, ".")
 		p.printAt(indent, n.Member)
 	case *Ref:
 		switch r := n.Target.(type) {
-		case string:
-			print(r)
 		case *Fun:
-			print(r.Name)
-			fmt.Printf("@%d", r.Index)
+			fmt.Fprint(p.w, r.Name)
+			fmt.Fprintf(p.w, "@%d", r.Index)
 		case *Var:
-			print(r.Name)
-			fmt.Printf("@%d", r.Index)
+			fmt.Fprint(p.w, r.Name)
+			fmt.Fprintf(p.w, "@%d", r.Index)
+		default:
+			fmt.Fprint(p.w, n.Name)
 		}
 	case *Return:
 		switch n.Kind {
 		case TokenBreak:
-			print("break")
+			fmt.Fprint(p.w, "break")
 		case TokenContinue:
-			print("continue")
+			fmt.Fprint(p.w, "continue")
 		case TokenReturn:
-			print("return")
+			fmt.Fprint(p.w, "return")
 		}
 		// TODO Label.
 		if n.Value != nil {
-			print(" ")
+			fmt.Fprint(p.w, " ")
 			p.printAt(indent, n.Value)
 		}
 	case *Switch:
-		print("switch")
+		fmt.Fprint(p.w, "switch")
 		if n.Subject != nil {
 			p.printAt(indent, n.Subject)
 		}
 		p.printKids(indent, n.Kids, false)
-		PrintIndent(indent)
-		print("end")
+		PrintIndent(p.w, indent)
+		fmt.Fprint(p.w, "end")
 	case *Value:
 		switch v := n.Value.(type) {
 		case string:
-			PrintEscapedString(v)
+			PrintEscapedString(p.w, v)
 		default:
-			fmt.Printf("%v", n.Value)
+			fmt.Fprintf(p.w, "%v", n.Value)
 		}
 	case *Var:
-		print("var ")
+		fmt.Fprint(p.w, "var ")
 		p.printVar(n, indent)
 	}
 }
 
 func (p *treePrinting) printKids(indent int, kids []Node, endless bool) {
-	println()
+	fmt.Fprintln(p.w)
 	nextIndent := indent + 1
 	for i, kid := range kids {
-		PrintIndent(nextIndent)
+		PrintIndent(p.w, nextIndent)
 		p.printAt(nextIndent, kid)
 		if !endless || i < len(kids)-1 {
-			println()
+			fmt.Fprintln(p.w)
 		}
 	}
 }
@@ -304,53 +306,53 @@ func (p *treePrinting) printKids(indent int, kids []Node, endless bool) {
 func (p *treePrinting) printType(t Type) {
 	switch t {
 	case nil:
-		print(" Unknown")
+		fmt.Fprint(p.w, " Unknown")
 	case TypeInt:
-		print(" Int")
+		fmt.Fprint(p.w, " Int")
 	case TypeNone:
-		print(" Invalid")
+		fmt.Fprint(p.w, " Invalid")
 	case TypeString:
-		print(" String")
+		fmt.Fprint(p.w, " String")
 	default:
-		print(" SomeType")
+		fmt.Fprint(p.w, " SomeType")
 	}
 }
 
 func (p *treePrinting) printVar(n *Var, indent int) {
-	print(n.Name)
-	fmt.Printf("@(%d,%d)", n.Index, n.Offset)
+	fmt.Fprint(p.w, n.Name)
+	fmt.Fprintf(p.w, "@(%d,%d)", n.Index, n.Offset)
 	p.printType(n.Type)
 	if n.Value != nil {
-		print(" = ")
+		fmt.Fprint(p.w, " = ")
 		p.printAt(indent, n.Value)
 	}
 }
 
-func PrintEscapedString(s string) {
-	print("\"")
+func PrintEscapedString(w io.Writer, s string) {
+	fmt.Fprint(w, "\"")
 	for _, r := range s {
 		switch r {
 		case '"', '\\':
-			print("\\")
-			fmt.Printf("%c", r)
+			fmt.Fprint(w, "\\")
+			fmt.Fprintf(w, "%c", r)
 		case '\n':
-			print("\\n")
+			fmt.Fprint(w, "\\n")
 		case '\r':
-			print("\\r")
+			fmt.Fprint(w, "\\r")
 		case '\t':
-			print("\\t")
+			fmt.Fprint(w, "\\t")
 		default:
 			switch {
 			case r < 0x20 || r > 0x7e:
-				print("\\u(")
-				fmt.Printf("%x", r)
-				print(')')
+				fmt.Fprint(w, "\\u(")
+				fmt.Fprintf(w, "%x", r)
+				fmt.Fprint(w, ')')
 			default:
-				fmt.Printf("%c", r)
+				fmt.Fprintf(w, "%c", r)
 			}
 		}
 	}
-	print("\"")
+	fmt.Fprint(w, "\"")
 }
 
 type treeBuilder struct {

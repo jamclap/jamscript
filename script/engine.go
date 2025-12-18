@@ -26,7 +26,7 @@ func (e *Engine) Process(source string) *Module {
 	// 	fmt.Printf("token: %v\n", token)
 	// }
 	parseTree := e.parser.Parse(tokens)
-	// parseTree.Print()
+	// parseTree.Print(os.Stdout)
 	module := e.treeBuilder.Norm(parseTree)
 	module.Core["log"] = &Fun{
 		Def: Def{
@@ -34,9 +34,9 @@ func (e *Engine) Process(source string) *Module {
 		},
 		Kids: []Node{doLog},
 	}
-	// module.Print()
+	// module.Print(os.Stdout)
 	e.analyze(module)
-	// module.Print()
+	// module.Print(os.Stdout)
 	return module
 }
 

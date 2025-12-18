@@ -49,11 +49,11 @@ func run(source string, b *testing.B) {
 	}
 }
 
-//go:embed examples/branch.jam
+//go:embed testdata/branch.jam
 var branch string
 
-//go:embed examples/explore.jam
+//go:embed testdata/explore.jam
 var explore string
 
-//go:embed examples/hi.jam
+//go:embed testdata/hi.jam
 var hi string

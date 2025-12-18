@@ -2,6 +2,7 @@ package script
 
 import (
 	"fmt"
+	"io"
 )
 
 func (p *parser) Parse(tokens []Token) ParseNode {
@@ -106,26 +107,26 @@ func (n ParseNode) NextEx(start int, keepVSpace bool) (int, ParseNode) {
 	return len(n.Kids), ParseNode{}
 }
 
-func (n ParseNode) Print() {
-	n.printAt(0)
+func (n ParseNode) Print(w io.Writer) {
+	n.printAt(w, 0)
 }
 
-func (n ParseNode) printAt(indent int) {
-	PrintIndent(indent)
+func (n ParseNode) printAt(w io.Writer, indent int) {
+	PrintIndent(w, indent)
 	switch n.Kind {
 	case ParseToken:
-		fmt.Printf("%s\n", n.Token)
+		fmt.Fprintf(w, "%s\n", n.Token)
 	default:
-		fmt.Printf("%s\n", n.Kind)
+		fmt.Fprintf(w, "%s\n", n.Kind)
 		for _, kid := range n.Kids {
-			kid.printAt(indent + 1)
+			kid.printAt(w, indent+1)
 		}
 	}
 }
 
-func PrintIndent(indent int) {
+func PrintIndent(w io.Writer, indent int) {
 	for range indent {
-		print("    ")
+		fmt.Fprint(w, "    ")
 	}
 }
 
