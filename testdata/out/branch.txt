@@ -1,0 +1,29 @@
+pub fun main@40() Unknown
+    describe@41(2)
+    describe@41(-1)
+    describe@41(0)
+end
+
+fun describe@41(i@(10,0) Int) Unknown
+    log@0(description@42(i@10))
+end
+
+fun description@42(i@(16,0) Int) Unknown
+    var message@(38,1) String = switch
+        case i@16.lt@0(0)
+            log@0("testing multiple case block statements")
+            "negative"
+        case i@16.gt@0(0)
+            "positive"
+        else
+            "zero"
+    end
+    return message@38
+end
+
+--- run log ---
+
+positive
+testing multiple case block statements
+negative
+zero

@@ -7,9 +7,9 @@ import (
 
 func (p *parser) Parse(tokens []Token) ParseNode {
 	p.index = 0
-	p.nodes = p.nodes[0:]
+	p.nodes = p.nodes[:0]
 	p.tokens = tokens
-	p.work = p.work[0:]
+	p.work = p.work[:0]
 	p.nodes = make([]inParseNode, 1) // so 0 is none
 	p.parse()
 	nodes := make([]ParseNode, len(p.nodes))

@@ -41,11 +41,11 @@ func process(source string, b *testing.B) {
 }
 
 func run(source string, b *testing.B) {
-	e := script.NewEngine()
+	engine := script.NewEngine()
 	log.SetOutput(io.Discard)
-	module := e.Process(source)
+	module := engine.Process(source)
 	for b.Loop() {
-		e.Run(module)
+		engine.Run(module)
 	}
 }
 

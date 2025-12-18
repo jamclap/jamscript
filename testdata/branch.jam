@@ -12,12 +12,12 @@ end
 
 fun description(i) # If no explicit return type, need `return` to infer.
     var message = switch
-        case i < 0
-            # If followed by newline takes a block.
-            log("testing multiple case block statements")
-            "negative"
-        case i > 0 then "positive" # Or use `then` for inline expression.
-        else "zero"
+    case i < 0
+        # If followed by newline takes a block.
+        log("testing multiple case block statements")
+        "negative"
+    case i > 0 then "positive" # Or use `then` for inline expression.
+    else "zero"
     end
     return message
 end

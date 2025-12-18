@@ -1,0 +1,19 @@
+pub fun main@15(sys@(1,0) Unknown) Unknown
+    greet@16()
+    greet@16()
+end
+
+fun greet@16() Unknown
+    log@0("I say, \"Hi!\"")
+    log@0("Now bye.")
+    log@0("")
+end
+
+--- run log ---
+
+I say, "Hi!"
+Now bye.
+
+I say, "Hi!"
+Now bye.
+
