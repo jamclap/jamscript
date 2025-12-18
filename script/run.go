@@ -97,7 +97,9 @@ func (r *runner) runCall(c *Call) any {
 	switch calleeNode := c.Callee.(type) {
 	case *Get:
 		var subject any
-		subject, callee = r.runGetSplit(calleeNode)
+		// Split these out to prevent binding allocation.
+		subject = r.runNode(calleeNode.Subject)
+		callee = r.runNode(calleeNode.Member)
 		r.stack = append(r.stack, subject)
 	default:
 		callee = r.runNode(c.Callee)
@@ -186,33 +188,11 @@ func (r *runner) runFun(f *Fun) any {
 }
 
 func (r *runner) runGet(g *Get) any {
-	subject, member := r.runGetSplit(g)
+	subject := r.runNode(g.Subject)
+	member := r.runNode(g.Member)
 	// TODO If member is a method, bind subject here?
 	_ = subject
 	return member
-}
-
-func (r *runner) runGetSplit(g *Get) (subject, member any) {
-	// fmt.Printf("n: %+v\n", g)
-	subject = r.runNode(g.Subject)
-	// TODO Pre-resolve members based on static type.
-	// fmt.Printf("subject: %+v %T\n", subject, subject)
-	switch subject.(type) {
-	case int32:
-		// fmt.Printf("int member: %+v %T\n", g.Member, g.Member)
-		switch m := g.Member.(type) {
-		case *TokenNode:
-			switch m.Text {
-			case "gt":
-				member = intGt
-			case "lt":
-				member = intLt
-			default:
-			}
-		}
-	default:
-	}
-	return
 }
 
 func (r *runner) runRef(ref *Ref) any {

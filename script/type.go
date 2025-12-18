@@ -1,6 +1,8 @@
 package script
 
-import "unique"
+import (
+	"unique"
+)
 
 func (t *typer) Type(m *Module) {
 	t.funTypes = t.funTypes[:0]
@@ -30,9 +32,12 @@ const (
 	TypeBool
 	TypeFloat
 	TypeInt
+	TypeNever
 	TypeString
 	TypeVoid
 )
+
+//go:generate stringer -type=BaseType
 
 type EitherType struct {
 	YesType Type
@@ -76,10 +81,11 @@ func (t *typer) typeNode(node Node, wanted Type) Type {
 	case *Fun:
 		return t.typeFun(n, wanted)
 	case *Get:
-		// TODO Resolve on the spot for members?
-		// TODO Or retain subject type for later resolve?
+		return t.typeGet(n, wanted)
 	case *Ref:
 		return t.typeRef(n, wanted)
+	case *Return:
+		return t.typeReturn(n, wanted)
 	case *Switch:
 		return t.typeSwitch(n, wanted)
 	case *TokenNode:
@@ -105,7 +111,11 @@ func (t *typer) typeBlockKids(kids []Node, wanted Type) Type {
 		if i == len(kids)-1 {
 			kidWanted = wanted
 		}
-		typ = t.typeNode(n, kidWanted)
+		nodeType := t.typeNode(n, kidWanted)
+		if typ != TypeNever {
+			// TODO Also only needed for last node, but meh.
+			typ = nodeType
+		}
 	}
 	return typ
 }
@@ -154,24 +164,68 @@ func (t *typer) typeFun(f *Fun, wanted Type) Type {
 	if specTypeType, ok := specType.(*TypeType); ok {
 		retType = specTypeType.Type
 	}
+	paramTypesNeeded := len(f.Type.ParamTypes) == 0
 	for i, p := range f.Params {
 		var paramWanted Type
 		if wantedOk && i < len(wantedFunType.ParamTypes) {
 			paramWanted = wantedFunType.ParamTypes[i]
 		}
 		paramType := t.typeNode(p, paramWanted)
-		if i < len(f.Type.ParamTypes) {
-			f.Type.ParamTypes[i] = paramType
-		} else {
-			// TODO Independently allocated param types slices ok?
-			f.Type.ParamTypes = append(f.Type.ParamTypes, paramType)
+		if paramTypesNeeded {
+			if i < len(f.Type.ParamTypes) {
+				f.Type.ParamTypes[i] = paramType
+			} else {
+				// TODO Independently allocated param types slices ok?
+				f.Type.ParamTypes = append(f.Type.ParamTypes, paramType)
+			}
 		}
 	}
 	for _, n := range f.Kids {
 		t.typeNode(n, nil)
 	}
-	f.Type.RetType = retType
+	if f.Type.RetType == nil {
+		f.Type.RetType = retType
+	}
 	return &f.Type
+}
+
+func (t *typer) typeGet(g *Get, wanted Type) Type {
+	// TODO
+	// Resolve on the spot for members.
+	// We could retain subject type for later resolve but that can requires
+	// many more passes than resolving as we go in a chain.
+	// Passes then presumably depend on inferred global or function types that
+	// depend on member gets.
+	var typ Type
+	subjectType := t.typeNode(g.Subject, nil)
+	switch m := g.Member.(type) {
+	case *TokenNode:
+		switch subjectType {
+		case TypeInt:
+			subjectType = intType
+		}
+		switch record := subjectType.(type) {
+		case *Record:
+			if member, ok := record.MemberMap[m.Text]; ok {
+				typ = t.typeNode(member, nil)
+				// fmt.Printf("typ: %v\n", typ)
+				// TODO How to avoid allocations here?
+				// TODO Make all nodes be plain structs with internal pointers?
+				// TODO And then cache Ref nodes for all functions and vars?
+				g.Member = &Ref{NodeInfo: m.NodeInfo, Node: member}
+			}
+		}
+		// fmt.Printf("subjectType: %+v\n", subjectType)
+		// fmt.Printf("m: %v\n", m)
+	}
+	return typ
+}
+
+func (t *typer) typeReturn(r *Return, wanted Type) Type {
+	_ = wanted
+	// TODO Pass in wanted if we know the target/return type.
+	t.typeNode(r.Value, nil)
+	return TypeNever
 }
 
 func (t *typer) typeRef(r *Ref, wanted Type) Type {

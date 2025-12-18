@@ -1,6 +1,8 @@
 package script
 
-import "log"
+import (
+	"log"
+)
 
 type Engine struct {
 	// Types map[Type]Type // TODO or use unique.Make(type) instead?
@@ -62,15 +64,37 @@ func doLog(s string) {
 
 var intGt = &Fun{
 	Def: Def{
-		Name: "Int::gt",
+		Name: "gt",
 	},
-	// TODO Convert to int32 instead?
+	Type: FunType{
+		ParamTypes: []Type{TypeInt, TypeInt},
+		RetType:    TypeBool,
+	},
 	Kids: []Node{func(i, j int32) bool { return i > j }},
 }
 
 var intLt = &Fun{
 	Def: Def{
-		Name: "Int::lt",
+		Name: "lt",
+	},
+	Type: FunType{
+		ParamTypes: []Type{TypeInt, TypeInt},
+		RetType:    TypeBool,
 	},
 	Kids: []Node{func(i, j int32) bool { return i < j }},
 }
+
+var intType = func() *Record {
+	members := []Node{
+		intGt,
+		intLt,
+	}
+	memberMap := make(map[string]Node, len(members))
+	for _, m := range members {
+		memberMap[m.(*Fun).Name] = m
+	}
+	return &Record{
+		Members:   members,
+		MemberMap: memberMap,
+	}
+}()

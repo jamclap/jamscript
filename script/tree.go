@@ -71,6 +71,14 @@ type Get struct {
 	Member  Node
 }
 
+type Record struct {
+	NodeInfo
+	Def
+	Scope
+	Members   []Node
+	MemberMap map[string]Node
+}
+
 type Switch struct {
 	NodeInfo
 	Subject Node
@@ -82,11 +90,12 @@ type Ref struct {
 	Node Node
 }
 
+// TODO Rename to Break?
 type Return struct {
 	NodeInfo
-	Kind  TokenKind
-	Label Node // Required for break.
-	Value Node
+	Kind   TokenKind
+	Target Node // From string value to target node, including function.
+	Value  Node
 }
 
 type Scope struct {
@@ -535,9 +544,9 @@ func (b *treeBuilder) toTree() *Module {
 	}
 	for i, r := range b.returns {
 		returns[i] = Return{
-			Kind:  r.kind,
-			Label: nodes[r.label],
-			Value: nodes[r.value],
+			Kind:   r.kind,
+			Target: nodes[r.label],
+			Value:  nodes[r.value],
 		}
 	}
 	for i, s := range b.switches {
