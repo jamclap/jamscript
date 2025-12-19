@@ -4,6 +4,7 @@ func (r *resolver) Resolve(m *Module) {
 	if m.Tops == nil {
 		m.Tops = make(map[string]Node)
 	}
+	r.funs = r.funs[:0]
 	r.levels = append(r.levels[:0], 0)
 	r.scope = r.scope[:0]
 	r.tops = m.Tops
@@ -17,6 +18,7 @@ type Pair[A, B any] struct {
 
 type resolver struct {
 	core   map[string]Node
+	funs   []Node
 	levels []int // Indices into scope. TODO Useless? Or needed for closures?
 	scope  []Pair[string, Node]
 	tops   map[string]Node
@@ -105,6 +107,7 @@ func (r *resolver) resolveFun(f *Fun) {
 	if len(r.levels) > 1 {
 		r.scope = append(r.scope, Pair[string, Node]{f.Name, f})
 	}
+	r.funs = append(r.funs, f)
 	r.pushLevel()
 	for _, p := range f.Params {
 		r.resolveNode(&p)
@@ -113,6 +116,7 @@ func (r *resolver) resolveFun(f *Fun) {
 		r.resolveNode(&f.Kids[i])
 	}
 	f.Size = r.popLevel()
+	pop(&r.funs)
 }
 
 func (r *resolver) resolveGet(g *Get) {
@@ -170,6 +174,26 @@ func (r *resolver) resolveRef(n *Ref) {
 
 func (r *resolver) resolveReturn(ret *Return) {
 	// TODO Resolve label?
+	switch ret.Kind {
+	case TokenBreak:
+		// switch t := ret.Target.(type) {
+		// case *Value:
+		// 	fmt.Printf("t.Value: %v\n", t.Value)
+		// }
+	case TokenReturn:
+		switch ret.Target {
+		case nil:
+			if len(r.funs) > 0 {
+				ret.Target = *last(&r.funs)
+			}
+		default:
+			switch ret.Target.(type) {
+			case *Fun:
+			default:
+				// TODO Error?
+			}
+		}
+	}
 	r.resolveNode(&ret.Value)
 }
 

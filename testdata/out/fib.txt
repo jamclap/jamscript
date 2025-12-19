@@ -1,18 +1,17 @@
-pub fun main@42(sys@(1,0) Unknown) Unknown
-    log@0(fib@43(35))
+pub fun main@40(sys@(1,0) Unknown) Unknown
+    fib@41(35)
 end
 
-fun fib@43(i@(7,0) Int) Unknown
-    return switch
-    case i@7.eq@0(0)
+fun fib@41(i@(5,0) Int) Int
+    return fib@41: switch
+    case i@5.eq@0(0)
         0
-    case i@7.eq@0(1)
+    case i@5.eq@0(1)
         1
     else
-        fib@43(i@7.sub@0(1)).add(fib@43(i@7.sub@0(2)))
+        fib@41(i@5.sub@0(1)).add@0(fib@41(i@5.sub@0(2)))
     end
 end
 
 --- run log ---
 
-callee not fun

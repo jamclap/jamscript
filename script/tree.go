@@ -224,10 +224,7 @@ func (p *treePrinting) printAt(indent int, node Node) {
 			fmt.Fprint(p.w, "pub ")
 		}
 		fmt.Fprint(p.w, "fun")
-		if n.Name != "" {
-			fmt.Fprintf(p.w, " %s", n.Name)
-		}
-		fmt.Fprintf(p.w, "@%d", n.Index)
+		p.printFunLabel(n)
 		// TODO If wide, print params on separate lines?
 		fmt.Fprint(p.w, "(")
 		for i, vnode := range n.Params {
@@ -265,7 +262,16 @@ func (p *treePrinting) printAt(indent int, node Node) {
 		case TokenReturn:
 			fmt.Fprint(p.w, "return")
 		}
-		// TODO Label.
+		if n.Target != nil {
+			switch t := n.Target.(type) {
+			case *Fun:
+				p.printFunLabel(t)
+				fmt.Fprint(p.w, ":")
+			default:
+				fmt.Fprintf(p.w, "%v %T", n.Target, n.Target)
+				fmt.Fprint(p.w, " =")
+			}
+		}
 		if n.Value != nil {
 			fmt.Fprint(p.w, " ")
 			p.printAt(indent, n.Value)
@@ -289,6 +295,13 @@ func (p *treePrinting) printAt(indent int, node Node) {
 		fmt.Fprint(p.w, "var ")
 		p.printVar(n, indent)
 	}
+}
+
+func (p *treePrinting) printFunLabel(f *Fun) {
+	if f.Name != "" {
+		fmt.Fprintf(p.w, " %s", f.Name)
+	}
+	fmt.Fprintf(p.w, "@%d", f.Index)
 }
 
 func (p *treePrinting) printKids(indent int, kids []Node, endless bool) {

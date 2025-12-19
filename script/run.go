@@ -108,6 +108,8 @@ func (r *runner) runCall(c *Call) any {
 		// Split these out to prevent binding allocation.
 		subject = r.runNode(calleeNode.Subject)
 		callee = r.runNode(calleeNode.Member)
+		// log.Printf("subject: %v\n", subject)
+		// log.Printf("callee: %v\n", callee)
 		r.stack = append(r.stack, subject)
 	default:
 		callee = r.runNode(c.Callee)
@@ -118,11 +120,14 @@ func (r *runner) runCall(c *Call) any {
 	}
 	// TODO How to handle nested funs and captures right?
 	for _, a := range c.Args {
-		r.stack = append(r.stack, r.runNode(a))
+		arg := r.runNode(a)
+		// log.Printf("arg: %v\n", arg)
+		r.stack = append(r.stack, arg)
 	}
 	r.pushLevel(stackStart)
 	// fmt.Printf("call f.Name: %v %v %+v\n", f.Name, stackStart, r.stack)
 	value := r.runFun(f)
+	// log.Printf("return value: %v\n", value)
 	r.popLevel()
 	return value
 }
@@ -138,29 +143,37 @@ func (r *runner) runFun(f *Fun) any {
 			switch f2 := v.(type) {
 			case func(int32, int32) bool:
 				if argCount != 2 {
-					log.Printf("bad args\n")
-					return nil
+					panic("bad arg count")
 				}
 				i, ok := r.stack[len(r.stack)-2].(int32)
 				if !ok {
-					log.Printf("bad args\n")
-					return nil
+					panic("bad arg type")
 				}
 				j, ok := r.stack[len(r.stack)-1].(int32)
 				if !ok {
-					log.Printf("bad args\n")
-					return nil
+					panic("bad arg type")
+				}
+				return f2(i, j)
+			case func(int32, int32) int32:
+				if argCount != 2 {
+					panic("bad arg count")
+				}
+				i, ok := r.stack[len(r.stack)-2].(int32)
+				if !ok {
+					panic("bad arg type")
+				}
+				j, ok := r.stack[len(r.stack)-1].(int32)
+				if !ok {
+					panic("bad arg type")
 				}
 				return f2(i, j)
 			case func(string):
 				if argCount != 1 {
-					log.Printf("bad args\n")
-					return nil
+					panic("bad arg count")
 				}
 				s, ok := r.stack[len(r.stack)-1].(string)
 				if !ok {
-					log.Printf("bad args\n")
-					return nil
+					panic("bad arg type")
 				}
 				f2(s)
 				return nil
@@ -172,12 +185,15 @@ func (r *runner) runFun(f *Fun) any {
 			for i := levelStart; i < len(r.stack); i++ {
 				r.reflectArgs = append(r.reflectArgs, reflect.ValueOf(r.stack[i]))
 			}
+			// log.Printf("r.stack: %v\n", r.stack)
+			// log.Printf("r.reflectArgs: %v\n", r.reflectArgs)
 			// TODO Specialize for certain kinds of funs to reduce allocs?
 			results := reflect.ValueOf(v).Call(r.reflectArgs)
 			var result any = nil
 			if len(results) > 0 {
 				result = results[0].Interface()
 			}
+			// log.Printf("result: %v\n", result)
 			r.reflectArgs = r.reflectArgs[:0]
 			return result
 		}
@@ -187,6 +203,7 @@ func (r *runner) runFun(f *Fun) any {
 		value := r.runNode(k)
 		// TODO Break returns should have been handled before here.
 		if r.returnKind != TokenNone {
+			// log.Printf("returning value: %v\n", value)
 			r.returnKind = TokenNone
 			return value
 		}
@@ -217,9 +234,9 @@ func (r *runner) runRef(ref *Ref) any {
 }
 
 func (r *runner) runReturn(ret *Return) any {
-	r.returnKind = TokenReturn
 	value := r.runNode(ret.Value)
-	// fmt.Printf("return value: %+v\n", value)
+	r.returnKind = TokenReturn
+	// log.Printf("runReturn value: %+v\n", value)
 	return value
 }
 
@@ -240,28 +257,29 @@ Cases:
 			continue Cases
 		}
 		// fmt.Printf("c: %+v\n", c)
-		matches := false
+		matched := false
 		switch {
 		case c.Always:
-			matches = true
+			matched = true
 		default:
 		Patterns:
 			for _, p := range c.Patterns {
 				value := r.runNode(p)
 				if value == subject {
-					matches = true
+					matched = true
 					break Patterns
 				}
 			}
 			// TODO Require guard also, if not nil.
 		}
-		if matches {
+		if matched {
 			// println("matches")
 			var value = r.runBlockKids(c.Kids)
-			// fmt.Printf("value: %v\n", value)
+			// log.Printf("switch value: %v\n", value)
 			return value
 		}
 	}
+	// log.Println("No switch value")
 	return nil
 }
 
@@ -272,7 +290,8 @@ func (r *runner) runValue(value *Value) any {
 func (r *runner) runVar(v *Var) any {
 	value := r.runNode(v.Value)
 	// fmt.Printf("v: %v %+v\n", v.Name, value)
-	push(&r.stack, value)
+	// log.Printf("runVar value: %v\n", value)
+	r.stack = append(r.stack, value)
 	// The var statement itself has value nil.
 	return nil
 }

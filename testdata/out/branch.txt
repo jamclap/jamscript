@@ -8,7 +8,7 @@ fun describe@41(i@(10,0) Int) Unknown
     log@0(description@42(i@10))
 end
 
-fun description@42(i@(16,0) Int) Unknown
+fun description@42(i@(16,0) Int) String
     var message@(38,1) String = switch
     case i@16.lt@0(0)
         log@0("testing multiple case block statements")
@@ -18,7 +18,7 @@ fun description@42(i@(16,0) Int) Unknown
     else
         "zero"
     end
-    return message@38
+    return description@42: message@38
 end
 
 --- run log ---

@@ -152,7 +152,6 @@ func (t *typer) typeCase(c *Case, wanted Type, subjectWanted Type) Type {
 func (t *typer) typeFun(f *Fun, wanted Type) Type {
 	// TODO If already typed, just fill in blanks.
 	// TODO Could we have blanks only in type parameters?
-	var retType Type
 	var wantedRetType Type
 	wantedFunType, wantedOk := wanted.(*FunType)
 	if wantedOk {
@@ -162,7 +161,11 @@ func (t *typer) typeFun(f *Fun, wanted Type) Type {
 	defer pop(&t.typeTypes)
 	specType := t.typeNode(f.RetSpec, wantedTypeType)
 	if specTypeType, ok := specType.(*TypeType); ok {
-		retType = specTypeType.Type
+		if f.Type.RetType == nil {
+			// Prioritize explicit return type before typing contents.
+			// Returns in there might set the return type otherwise.
+			f.Type.RetType = specTypeType.Type
+		}
 	}
 	paramTypesNeeded := len(f.Type.ParamTypes) == 0
 	for i, p := range f.Params {
@@ -182,9 +185,6 @@ func (t *typer) typeFun(f *Fun, wanted Type) Type {
 	}
 	for _, n := range f.Kids {
 		t.typeNode(n, nil)
-	}
-	if f.Type.RetType == nil {
-		f.Type.RetType = retType
 	}
 	return &f.Type
 }
@@ -232,7 +232,16 @@ func (t *typer) typeGet(g *Get, wanted Type) Type {
 func (t *typer) typeReturn(r *Return, wanted Type) Type {
 	_ = wanted
 	// TODO Pass in wanted if we know the target/return type.
-	t.typeNode(r.Value, nil)
+	valueType := t.typeNode(r.Value, nil)
+	if r.Target != nil {
+		switch target := r.Target.(type) {
+		case *Fun:
+			// First in tree order wins.
+			if target.Type.RetType == nil {
+				target.Type.RetType = valueType
+			}
+		}
+	}
 	return TypeNever
 }
 
