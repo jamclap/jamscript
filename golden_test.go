@@ -12,7 +12,7 @@ import (
 
 func TestGolden(t *testing.T) {
 	engine := script.NewEngine()
-	names := []string{"branch", "hi"}
+	names := []string{"branch", "fib", "hi"}
 	for _, name := range names {
 		updateGolden(engine, name)
 	}
@@ -46,5 +46,8 @@ func updateGolden(engine *script.Engine, name string) {
 	oldFlags := log.Flags()
 	log.SetFlags(0)
 	defer log.SetFlags(oldFlags)
-	engine.Run(module)
+	err = engine.Run(module)
+	if err != nil {
+		log.Println(err)
+	}
 }

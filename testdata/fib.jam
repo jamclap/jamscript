@@ -1,0 +1,11 @@
+pub fun main(sys)
+	log(fib(35))
+end
+
+fun fib(i)
+	return switch
+	case i == 0 then 0
+	case i == 1 then 1
+	else fib(i - 1) + fib(i - 2)
+	end
+end

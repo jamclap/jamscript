@@ -25,6 +25,14 @@ func BenchmarkRunExplore(b *testing.B) {
 	run(explore, b)
 }
 
+func BenchmarkProcessFib(b *testing.B) {
+	process(fib, b)
+}
+
+func BenchmarkRunFib(b *testing.B) {
+	run(fib, b)
+}
+
 func BenchmarkProcessHi(b *testing.B) {
 	process(hi, b)
 }
@@ -54,6 +62,9 @@ var branch string
 
 //go:embed testdata/explore.jam
 var explore string
+
+//go:embed testdata/fib.jam
+var fib string
 
 //go:embed testdata/hi.jam
 var hi string

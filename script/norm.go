@@ -206,10 +206,16 @@ func (b *treeBuilder) normInfix(p ParseNode) {
 	// Make a token for an operator method name.
 	name := ""
 	switch op.Token.Kind {
+	case TokenAdd:
+		name = "add"
+	case TokenEqEq:
+		name = "eq"
 	case TokenGt:
 		name = "gt"
 	case TokenLt:
 		name = "lt"
+	case TokenSub:
+		name = "sub"
 	}
 	if name != "" {
 		b.pushWork(inNode{kind: NodeRef, index: len(b.refs)})

@@ -10,13 +10,13 @@ end
 
 fun description@42(i@(16,0) Int) Unknown
     var message@(38,1) String = switch
-        case i@16.lt@0(0)
-            log@0("testing multiple case block statements")
-            "negative"
-        case i@16.gt@0(0)
-            "positive"
-        else
-            "zero"
+    case i@16.lt@0(0)
+        log@0("testing multiple case block statements")
+        "negative"
+    case i@16.gt@0(0)
+        "positive"
+    else
+        "zero"
     end
     return message@38
 end

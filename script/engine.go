@@ -40,8 +40,8 @@ func (e *Engine) Process(source string) *Module {
 	return module
 }
 
-func (e *Engine) Run(m *Module) {
-	e.runner.Run(m)
+func (e *Engine) Run(m *Module) error {
+	return e.runner.Run(m)
 }
 
 func (e *Engine) analyze(module *Module) {
@@ -60,6 +60,28 @@ func doLog(s string) {
 	// TODO Option to select where `log` goes?
 	// fmt.Fprintln(os.Stderr, s)
 	log.Println(s)
+}
+
+var intAdd = &Fun{
+	Def: Def{
+		Name: "add",
+	},
+	Type: FunType{
+		ParamTypes: []Type{TypeInt, TypeInt},
+		RetType:    TypeInt,
+	},
+	Kids: []Node{func(i, j int32) int32 { return i + j }},
+}
+
+var intEq = &Fun{
+	Def: Def{
+		Name: "eq",
+	},
+	Type: FunType{
+		ParamTypes: []Type{TypeInt, TypeInt},
+		RetType:    TypeBool,
+	},
+	Kids: []Node{func(i, j int32) bool { return i == j }},
 }
 
 var intGt = &Fun{
@@ -84,10 +106,24 @@ var intLt = &Fun{
 	Kids: []Node{func(i, j int32) bool { return i < j }},
 }
 
+var intSub = &Fun{
+	Def: Def{
+		Name: "sub",
+	},
+	Type: FunType{
+		ParamTypes: []Type{TypeInt, TypeInt},
+		RetType:    TypeBool,
+	},
+	Kids: []Node{func(i, j int32) int32 { return i - j }},
+}
+
 var intType = func() *Record {
 	members := []Node{
+		intAdd,
+		intEq,
 		intGt,
 		intLt,
+		intSub,
 	}
 	memberMap := make(map[string]Node, len(members))
 	for _, m := range members {

@@ -28,6 +28,7 @@ type TokenKind int
 
 const (
 	TokenNone TokenKind = iota
+	TokenAdd
 	TokenAs
 	TokenBreak
 	TokenCase
@@ -118,6 +119,13 @@ func (l *lexer) lex() {
 					l.push(TokenEqEq, start)
 				default:
 					l.push(TokenEq, start)
+				}
+			case '+':
+				l.next()
+				switch r := l.peek(); r {
+				// TODO Compound operators.
+				default:
+					l.push(TokenAdd, start)
 				}
 			case '-':
 				l.next()

@@ -221,7 +221,7 @@ func (p *parser) parseAdd() {
 	p.parseCall()
 	for {
 		switch t := p.peek(); t.Kind {
-		case TokenSub:
+		case TokenAdd, TokenSub:
 			p.pushToken(t)
 			p.parseCall()
 			p.commit(ParseInfix, start)
@@ -262,13 +262,6 @@ func (p *parser) parseAtom() {
 		p.pushToken(t)
 		p.commit(ParseJunk, start)
 	}
-}
-
-func (p *parser) parsePrefix(t Token) {
-	start := len(p.work)
-	p.pushToken(t)
-	p.parseExpr()
-	p.commit(ParsePrefix, start)
 }
 
 func (p *parser) parseBlock() {
@@ -445,6 +438,13 @@ Params:
 		}
 	}
 	p.commit(ParseParams, start)
+}
+
+func (p *parser) parsePrefix(t Token) {
+	start := len(p.work)
+	p.pushToken(t)
+	p.parseExpr()
+	p.commit(ParsePrefix, start)
 }
 
 func (p *parser) parseReturn(t Token) {

@@ -1,28 +1,36 @@
 package script
 
 import (
+	"errors"
+	"fmt"
 	"log"
 	"reflect"
 )
 
-func (r *runner) Run(m *Module) {
+func (r *runner) Run(m *Module) (err error) {
 	r.module = m
 	r.reflectArgs = r.reflectArgs[:0]
+	r.returnKind = TokenNone
 	r.stack = r.stack[:0]
 	r.levels = append(r.levels[:0], runLevel{})
 	main, ok := m.Tops["main"]
 	if !ok {
-		log.Println("no main")
-		return
+		return errors.New("no main")
 	}
 	mainFun, ok := main.(*Fun)
 	if !ok {
 		// TODO Also check sig.
-		log.Println("main not a function")
-		return
+		return errors.New("main not a function")
 	}
 	// TODO Push sys.
+	defer func() {
+		if rec := recover(); rec != nil {
+			// log.Println(rec)
+			err = fmt.Errorf("%v", rec)
+		}
+	}()
 	r.runFun(mainFun)
+	return
 }
 
 // TODO Separate runner per coroutine?
@@ -106,8 +114,7 @@ func (r *runner) runCall(c *Call) any {
 	}
 	f, ok := callee.(*Fun)
 	if !ok {
-		log.Println("callee not fun")
-		return nil
+		panic("callee not fun")
 	}
 	// TODO How to handle nested funs and captures right?
 	for _, a := range c.Args {

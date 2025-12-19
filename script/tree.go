@@ -275,7 +275,7 @@ func (p *treePrinting) printAt(indent int, node Node) {
 		if n.Subject != nil {
 			p.printAt(indent, n.Subject)
 		}
-		p.printKids(indent, n.Kids, false)
+		p.printKids(indent-1, n.Kids, false)
 		PrintIndent(p.w, indent)
 		fmt.Fprint(p.w, "end")
 	case *Value:
