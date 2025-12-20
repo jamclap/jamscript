@@ -167,15 +167,11 @@ func (r *runner) runFun(f *Fun) any {
 					panic("bad arg type")
 				}
 				return f2(i, j)
-			case func(string):
+			case func(any):
 				if argCount != 1 {
 					panic("bad arg count")
 				}
-				s, ok := r.stack[len(r.stack)-1].(string)
-				if !ok {
-					panic("bad arg type")
-				}
-				f2(s)
+				f2(r.stack[len(r.stack)-1])
 				return nil
 			}
 			if argCount != reflect.TypeOf(v).NumIn() {

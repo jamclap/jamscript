@@ -28,12 +28,7 @@ func (e *Engine) Process(source string) *Module {
 	parseTree := e.parser.Parse(tokens)
 	// parseTree.Print(os.Stdout)
 	module := e.treeBuilder.Norm(parseTree)
-	module.Core["log"] = &Fun{
-		Def: Def{
-			Name: "log",
-		},
-		Kids: []Node{doLog},
-	}
+	module.Core["log"] = doLog
 	// module.Print(os.Stdout)
 	e.analyze(module)
 	// module.Print(os.Stdout)
@@ -56,10 +51,20 @@ func (e *Engine) analyze(module *Module) {
 	}
 }
 
-func doLog(s string) {
-	// TODO Option to select where `log` goes?
-	// fmt.Fprintln(os.Stderr, s)
-	log.Println(s)
+var doLog = &Fun{
+	Def: Def{
+		Name: "log",
+	},
+	Type: FunType{
+		ParamTypes: []Type{TypeAny},
+		RetType:    TypeVoid,
+	},
+	Kids: []Node{func(a any) {
+		// TODO Option to select where `log` goes?
+		// TODO Specialized formatting for records and more.
+		// TODO Call toString() with some fallback for classes.
+		log.Println(a)
+	}},
 }
 
 var intAdd = &Fun{

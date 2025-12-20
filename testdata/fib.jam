@@ -1,5 +1,5 @@
 pub fun main(sys)
-	fib(35)
+	log(fib(10))
 end
 
 fun fib(i)

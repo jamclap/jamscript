@@ -9,17 +9,18 @@ func _() {
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
 	_ = x[TypeNone-0]
-	_ = x[TypeBool-1]
-	_ = x[TypeFloat-2]
-	_ = x[TypeInt-3]
-	_ = x[TypeNever-4]
-	_ = x[TypeString-5]
-	_ = x[TypeVoid-6]
+	_ = x[TypeAny-1]
+	_ = x[TypeBool-2]
+	_ = x[TypeFloat-3]
+	_ = x[TypeInt-4]
+	_ = x[TypeNever-5]
+	_ = x[TypeString-6]
+	_ = x[TypeVoid-7]
 }
 
-const _BaseType_name = "TypeNoneTypeBoolTypeFloatTypeIntTypeNeverTypeStringTypeVoid"
+const _BaseType_name = "TypeNoneTypeAnyTypeBoolTypeFloatTypeIntTypeNeverTypeStringTypeVoid"
 
-var _BaseType_index = [...]uint8{0, 8, 16, 25, 32, 41, 51, 59}
+var _BaseType_index = [...]uint8{0, 8, 15, 23, 32, 39, 48, 58, 66}
 
 func (i BaseType) String() string {
 	idx := int(i) - 0

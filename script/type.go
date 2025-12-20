@@ -29,6 +29,7 @@ type BaseType int
 
 const (
 	TypeNone BaseType = iota
+	TypeAny
 	TypeBool
 	TypeFloat
 	TypeInt
