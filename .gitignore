@@ -2,4 +2,5 @@
 *.prof
 *.swp
 *.test
+ignore/
 target/

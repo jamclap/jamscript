@@ -175,8 +175,7 @@ func (r *runner) runFun(f *Fun) any {
 				return nil
 			}
 			if argCount != reflect.TypeOf(v).NumIn() {
-				log.Printf("reflect fun: %+v %d\n", v, reflect.TypeOf(v).NumIn())
-				return nil
+				panic(fmt.Sprintf("reflect fun: %+v %d\n", v, reflect.TypeOf(v).NumIn()))
 			}
 			for i := levelStart; i < len(r.stack); i++ {
 				r.reflectArgs = append(r.reflectArgs, reflect.ValueOf(r.stack[i]))
