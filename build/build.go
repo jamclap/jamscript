@@ -11,7 +11,7 @@ import (
 
 var (
 	targetDir  = "target"
-	targetFile = exe(filepath.Join(targetDir, "jams"))
+	targetFile = exe(filepath.Join(targetDir, "rio"))
 )
 
 func main() {

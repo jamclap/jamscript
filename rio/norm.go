@@ -1,4 +1,4 @@
-package script
+package rio
 
 import (
 	"strconv"

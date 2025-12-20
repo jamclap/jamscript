@@ -7,18 +7,18 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/jamclap/jamscript/script"
+	"github.com/jamclap/jamscript/rio"
 )
 
 func TestGolden(t *testing.T) {
-	engine := script.NewEngine()
+	engine := rio.NewEngine()
 	names := []string{"branch", "fib", "hi"}
 	for _, name := range names {
 		updateGolden(engine, name)
 	}
 }
 
-func updateGolden(engine *script.Engine, name string) {
+func updateGolden(engine *rio.Engine, name string) {
 	dir := "testdata"
 	// Prep output.
 	outDir := filepath.Join(dir, "out")
@@ -32,7 +32,7 @@ func updateGolden(engine *script.Engine, name string) {
 	}
 	defer out.Close()
 	// Process input, and write tree.
-	source, err := os.ReadFile(filepath.Join(dir, fmt.Sprintf("%v.jam", name)))
+	source, err := os.ReadFile(filepath.Join(dir, fmt.Sprintf("%v.rio", name)))
 	if err != nil {
 		log.Panic(err)
 	}

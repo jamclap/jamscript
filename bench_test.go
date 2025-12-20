@@ -6,7 +6,7 @@ import (
 	"log"
 	"testing"
 
-	"github.com/jamclap/jamscript/script"
+	"github.com/jamclap/jamscript/rio"
 )
 
 func BenchmarkProcessBranch(b *testing.B) {
@@ -42,14 +42,14 @@ func BenchmarkRunHi(b *testing.B) {
 }
 
 func process(source string, b *testing.B) {
-	e := script.NewEngine()
+	e := rio.NewEngine()
 	for b.Loop() {
 		e.Process(source)
 	}
 }
 
 func run(source string, b *testing.B) {
-	engine := script.NewEngine()
+	engine := rio.NewEngine()
 	log.SetOutput(io.Discard)
 	module := engine.Process(source)
 	for b.Loop() {
@@ -57,14 +57,14 @@ func run(source string, b *testing.B) {
 	}
 }
 
-//go:embed testdata/branch.jam
+//go:embed testdata/branch.rio
 var branch string
 
-//go:embed testdata/explore.jam
+//go:embed testdata/explore.rio
 var explore string
 
-//go:embed testdata/fib.jam
+//go:embed testdata/fib.rio
 var fib string
 
-//go:embed testdata/hi.jam
+//go:embed testdata/hi.rio
 var hi string

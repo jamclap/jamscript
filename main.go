@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/jamclap/jamscript/script"
+	"github.com/jamclap/jamscript/rio"
 )
 
 func main() {
@@ -16,7 +16,7 @@ func main() {
 	if err != nil {
 		log.Panic(err)
 	}
-	e := script.NewEngine()
+	e := rio.NewEngine()
 	module := e.Process(string(b))
 	// module.Print()
 	e.Run(module)

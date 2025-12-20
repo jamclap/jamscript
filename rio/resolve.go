@@ -1,4 +1,4 @@
-package script
+package rio
 
 func (r *resolver) Resolve(m *Module) {
 	if m.Tops == nil {
