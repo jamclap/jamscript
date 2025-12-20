@@ -1,20 +1,20 @@
-2025-12-20T02:29:54Z tom@hierba:~/projects/jamscript
-$ go test -benchmem -bench . -cpuprofile cpu.prof -memprofile mem.prof
-goos: linux
+PS C:\Users\tjpal\projects\jamscript> go test -benchmem -bench . -memprofile mem.prof
+goos: windows
 goarch: amd64
 pkg: github.com/jamclap/jamscript
-cpu: Intel(R) Core(TM) i3-10100 CPU @ 3.60GHz
-BenchmarkProcessBranch-8    	   45152	     26412 ns/op	   38050 B/op	      36 allocs/op
-BenchmarkRunBranch-8        	 2627032	       455.4 ns/op	       0 B/op	       0 allocs/op
-BenchmarkProcessExplore-8   	   14658	     81826 ns/op	  121433 B/op	      37 allocs/op
-BenchmarkRunExplore-8       	45192176	        27.15 ns/op	      16 B/op	       1 allocs/op
-BenchmarkProcessFib-8       	   61736	     19534 ns/op	   28689 B/op	      27 allocs/op
-BenchmarkRunFib-8           	   51936	     23116 ns/op	       1 B/op	       0 allocs/op
-BenchmarkProcessHi-8        	   86911	     13611 ns/op	   24736 B/op	      31 allocs/op
-BenchmarkRunHi-8            	 7050408	       169.4 ns/op	       0 B/op	       0 allocs/op
+cpu: Intel(R) Core(TM) 7 150U
+BenchmarkProcessBranch-12          35022             32205 ns/op           38049 B/op         36 allocs/op
+BenchmarkRunBranch-12            2884023               416.8 ns/op             0 B/op          0 allocs/op
+BenchmarkProcessExplore-12         12477             95515 ns/op          121432 B/op         37 allocs/op
+BenchmarkRunExplore-12          46230775                25.61 ns/op           16 B/op          1 allocs/op
+BenchmarkProcessFib-12             48722             23732 ns/op           28688 B/op         27 allocs/op
+BenchmarkRunFib-12                 51376             24544 ns/op               0 B/op          0 allocs/op
+BenchmarkProcessHi-12              65092             19012 ns/op           24736 B/op         31 allocs/op
+BenchmarkRunHi-12                7917008               150.2 ns/op             0 B/op          0 allocs/op
 PASS
-ok  	github.com/jamclap/jamscript	9.735s
-2025-12-20T02:30:09Z tom@hierba:~/projects/jamscript
-$ ./target/build 
-Build time: 0.05 s
-Size of target/jams: 1859768 B or 1.77 MiB
+ok      github.com/jamclap/jamscript    9.588s
+PS C:\Users\tjpal\projects\jamscript> .\target\build && signtool sign /fd SHA256 /a target\rio.exe
+Build time: 0.69 s
+Size of target\rio.exe: 1972096 B or 1.88 MiB
+Done Adding Additional Store
+Successfully signed: target\rio.exe
