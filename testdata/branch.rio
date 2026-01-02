@@ -1,23 +1,23 @@
 pub fun main()
-    describe(2)
-    describe(-1)
-    describe(0)
+   describe(2)
+   describe(-1)
+   describe(0)
 end
 
 # Vars named i through n are Int by default.
 # And vars named w through z are Float by default.
 fun describe(i)
-    log(description(i))
+   log(description(i))
 end
 
 fun description(i) # If no explicit return type, need `return` to infer.
-    var message = switch
-    case i < 0
-        # If followed by newline takes a block.
-        log("testing multiple case block statements")
-        "negative"
-    case i > 0 then "positive" # Or use `then` for inline expression.
-    else "zero"
-    end
-    return message
+   var message = switch
+      case i < 0
+         # If followed by newline takes a block.
+         log("testing multiple case block statements")
+         "negative"
+      case i > 0 then "positive" # Or use `then` for inline expression.
+      else "zero"
+   end
+   return message
 end

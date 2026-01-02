@@ -1,12 +1,12 @@
 pub fun main(sys)
-    # Prove we can call twice.
-    greet()
-    greet()
+   # Prove we can call twice.
+   greet()
+   greet()
 end
 
 fun greet()
-    # Had some parsing bugs, so try string variety.
-    log("I say, \"Hi!\"")
-    log("Now bye.")
-    log("")
+   # Had some parsing bugs, so try string variety.
+   log("I say, \"Hi!\"")
+   log("Now bye.")
+   log("")
 end
