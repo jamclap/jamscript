@@ -197,9 +197,7 @@ func (l *lexer) next() {
 
 func (l *lexer) peek() rune {
 	if l.peekedSize > 0 {
-		r := l.peeked
-		l.peekedSize = 0
-		return r
+		return l.peeked
 	}
 	if !l.has() {
 		return 0

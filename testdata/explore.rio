@@ -1,25 +1,25 @@
 import "something" as blah use
-    here
-    there
-    hi = there
-    there as hi
+   here
+   there
+   hi = there
+   there as hi
 end
 from import "something" use
-    etc
+   etc
 end
 const blah = import "something"
 from blah use
-    etc
+   etc
 end
 const alias = other
 use other as alias
 as alias use other
 import
-    "one" as uno
-    "two" as dos use
-        things
-        moreThings
-    end
+   "one" as uno
+   "two" as dos use
+      things
+      moreThings
+   end
 end
 
 class Something(x, var y)
@@ -27,57 +27,57 @@ class Something(x, var y)
 var z = y
 
 pub fun Something&.blah(a, b)
-    change var c Int
-    # c == 0 before assignment
-    c = 1
-    c = 2
-    if a == b
-        c = 3
-    end
-    var d =
-        if a == b then c
-        else if b == c then 2 else 3
-    more = d
-    if a == b
-        things
-    else if c == d
-        otherThings
-    else
-        whatever
-    end
-    var e = switch
-    case a == b
-        1
-    case a == c
-        2
-    case a == d then 3
-    else 4
-    end
-    var a = things.map(fun(x) then x + 1)
-    var a = things.map(for x then x + 1) # except for as while?
+   change var c Int
+   # c == 0 before assignment
+   c = 1
+   c = 2
+   if a == b
+      c = 3
+   end
+   var d =
+      if a == b then c
+      else if b == c then 2 else 3
+   more = d
+   if a == b
+      things
+   else if c == d
+      otherThings
+   else
+      whatever
+   end
+   var e = switch
+   case a == b
+      1
+   case a == c
+      2
+   case a == d then 3
+   else 4
+   end
+   var a = things.map(fun(x) then x + 1)
+   var a = things.map(for x then x + 1) # except for as while?
 end
 
 end class # optional
 
 enum Thing
-    a
-    b
+   a
+   b
 end
 
 union Blah
-    Hey
-    There
+   Hey
+   There
 end
 
 struct Entity
-    pos ?Vec2
-    vel? # means: vel ?Vec2, or: vel Maybe[Vec2]
+   pos ?Vec2
+   vel? # means: vel ?Vec2, or: vel Maybe[Vec2]
 end
 
 var entities Entity?* # or: List[Maybe[Entity]]
 var entities *?Entity # or: List[Maybe[Entity]]
 
 vartype
-    pos Vec2
-    vel Vec2
+   pos Vec2
+   vel Vec2
 end
